@@ -1,5 +1,3 @@
-#include <SDL3/SDL.h>
-
 void CreateMemoryCard(); // Criar dados de Memory Card formatado e em branco
 void LoadIcon(); // Faz a leitura de dados de icone mais cores e desenha o icone
 void WriteRawData(); // Escreve os dados RAW do Memory Card em .mcr
