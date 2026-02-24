@@ -15,9 +15,9 @@ Core ps1Core; //Crie a instância
 SDL_Gamepad* g_gamepad = nullptr; // Vaviavel gamepad
 int num_joysticks = 0; // Número de joysticks conectados
 
+// --- FORÇA O USO DA GPU DEDICADA NO WINDOWS ---
 #ifdef _WIN32
 #include <windows.h>
-// Força o driver da NVIDIA a usar a GPU Dedicada em vez da Integrada
 extern "C" {
     __declspec(dllexport) DWORD NvOptimusEnablement = 1;
     __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
@@ -53,7 +53,6 @@ int main(int argc, char* argv[]) {
             window                      // A janela principal do emulador (pode ser nullptr se a janela ainda não existir)
         );
 
-        // 4. Aborta a missão
         return false;
     }
 

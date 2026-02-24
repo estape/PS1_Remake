@@ -7,16 +7,25 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- 2. SEUS ARQUIVOS DO EMULADOR ---
 add_executable(${PROJECT_NAME} 
+    #Main
     "PS1_Remake.cpp" 
-    "PS1_Remake.h" 
+    "PS1_Remake.h"
+
+    #Engine 
     "source/PS1_Remake/Engine/src/Core.cpp" 
     "source/PS1_Remake/Engine/include/Core.h" 
     "source/PS1_Remake/Engine/src/SetAttr.cpp" 
     "source/PS1_Remake/Engine/include/SetAttr.h"
     "source/PS1_Remake/Engine/src/ControllerHandle.cpp" 
     "source/PS1_Remake/Engine/include/ControllerHandle.h"
-    #"source/PS1_Remake/Engine/src/mmcHandle.cpp" 
-    #"source/PS1_Remake/Engine/include/mmcHandle.h"
+    "source/PS1_Remake/Engine/src/MMC_Handle.cpp" 
+    "source/PS1_Remake/Engine/include/MMC_Handle.h"
+    "source/PS1_Remake/Engine/src/SaveStateManager"
+    "source/PS1_Remake/Engine/include/SaveStateManager"
+    "source/PS1_Remake/Engine/src/CD_Management"
+    "source/PS1_Remake/Engine/include/CD_Management"
+
+    #SDL Base
     #"source/PS1_Remake/View/src/BtnClass.cpp" 
     #"source/PS1_Remake/View/include/BtnClass.h"
 )

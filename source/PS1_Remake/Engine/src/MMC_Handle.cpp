@@ -2,7 +2,7 @@
 
 void CreateNewMemoryCard()
 {
-
+    
 }
 
 void LoadIcon()
