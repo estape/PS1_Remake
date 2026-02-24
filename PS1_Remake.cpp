@@ -5,7 +5,7 @@
 
 // --- Futuramente a ser definido pelo front-end ---
 const std::string CORE_PATH = "mednafen_psx_hw_libretro.dll";
-const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Grand Theft Auto (USA).cue"; // Seu jogo aqui!
+const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Grand Theft Auto (USA).cue";
 // ---------------------------------------------
 
 SetAttr PS1_Config; // Configurações do PS1 (SDL, OpenGL e Gamepad)
