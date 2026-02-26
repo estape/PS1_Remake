@@ -38,7 +38,17 @@ void LoadIcon()
 
 void WriteRawData()
 {
-
+    // ==========================================================
+    // GRAVAÇÃO NO DISCO FÍSICO DO PC
+    // ==========================================================
+    std::ofstream outFile(filepath, std::ios::binary);
+    if (outFile.is_open()) {
+        outFile.write(reinterpret_cast<const char*>(mcData.data()), mcData.size());
+        outFile.close();
+        std::cout << "[MEMORY CARD] Cartao formatado criado com sucesso: " << filepath << std::endl;
+    } else {
+        std::cout << "[ERRO] Nao foi possivel criar o cartao: " << filepath << std::endl;
+    }
 }
 
 void ReadRawData()
