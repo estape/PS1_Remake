@@ -1,4 +1,4 @@
-void CreateMemoryCard(); // Criar dados de Memory Card formatado e em branco
+std::vector<uint8_t> CreateMemoryCard(); // Criar dados de Memory Card formatado e em branco
 void LoadIcon(); // Faz a leitura de dados de icone mais cores e desenha o icone
 void WriteRawData(); // Escreve os dados RAW do Memory Card em .mcr
 void ReadRawData(); // Lê os dados RAW do Memory Card
