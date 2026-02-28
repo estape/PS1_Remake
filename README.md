@@ -11,6 +11,9 @@ Rather than just wrapping an emulator core, this project focuses on robust syste
 
 > **Note:** This project serves as a technical showcase of C++ software engineering, memory management, and reverse engineering.
 
+![Main Menu image](Images/PS1Menu_Reference.png)
+![CD Player image](Images/CD_Player_Reference.png)
+
 ## Engineering Highlights & Key Features
 
 ## 🤖 AI-Assisted Development 🤖
