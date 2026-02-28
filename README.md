@@ -17,7 +17,7 @@ Rather than just wrapping an emulator core, this project focuses on robust syste
 ## Engineering Highlights & Key Features
 
 ## 🤖 AI-Assisted Development 🤖
-Building a custom C++ emulator frontend from scratch is a massive undertaking. Between wrestling with the Libretro API's complex documentation, managing low-level C++ memory, and balancing my limited time as a solo developer, I decided to bring in an AI co-pilot. 
+Building a custom C++ emulator frontend from scratch is a massive undertaking. Between wrestling with the Libretro API's complex documentation, managing low-level C++ memory, and balancing my limited time as a **solo developer**, I decided to bring in an AI co-pilot. 
 I use **Google's Gemini Pro** as a sounding board to brainstorm low-level implementations, prototype boilerplate code, and speed up my workflow. However, the engineering vision is **entirely mine**. All the critical architectural decisions, the frontend/backend decoupling, the hardware integration logic, and the final debugging are human-driven.
 
 ### Advanced Memory Card Management (`MMC_Handle`)
