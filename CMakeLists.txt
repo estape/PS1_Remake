@@ -20,10 +20,11 @@ add_executable(${PROJECT_NAME}
     "source/PS1_Remake/Engine/include/ControllerHandle.h"
     "source/PS1_Remake/Engine/src/MMC_Handle.cpp" 
     "source/PS1_Remake/Engine/include/MMC_Handle.h"
-    "source/PS1_Remake/Engine/src/SaveStateManager"
-    "source/PS1_Remake/Engine/include/SaveStateManager"
-    "source/PS1_Remake/Engine/src/CD_Management"
-    "source/PS1_Remake/Engine/include/CD_Management"
+    "source/PS1_Remake/Engine/src/SaveStateManager.cpp"
+    "source/PS1_Remake/Engine/include/SaveStateManager.h"
+    "source/PS1_Remake/Engine/src/CD_Management.cpp"
+    "source/PS1_Remake/Engine/include/CD_Management.h"
+    "source/PS1_Remake/Engine/include/json.hpp"
 
     #SDL Base
     #"source/PS1_Remake/View/src/BtnClass.cpp" 

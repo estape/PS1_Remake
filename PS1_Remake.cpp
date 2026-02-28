@@ -1,7 +1,4 @@
-﻿#include <SDL3/SDL.h>
-#include "source/PS1_Remake/Engine/include/Core.h"
-#include "source/PS1_Remake/Engine/include/SetAttr.h"
-#include <iostream>
+﻿#include "PS1_Remake.h"
 
 // --- Futuramente a ser definido pelo front-end ---
 const std::string CORE_PATH = "mednafen_psx_hw_libretro.dll";
@@ -11,7 +8,7 @@ const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Gran
 SetAttr PS1_Config; // Configurações do PS1 (SDL, OpenGL e Gamepad)
 
 // --- VARIÁVEIS GLOBAIS ---
-Core ps1Core; //Crie a instância
+Core ps1Core;
 SDL_Gamepad* g_gamepad = nullptr; // Vaviavel gamepad
 int num_joysticks = 0; // Número de joysticks conectados
 
@@ -25,22 +22,33 @@ extern "C" {
 #endif
 // -----------------------
 
-int main(int argc, char* argv[]) {
-    
-    const double TARGET_DT = 1000.0 / 60.0; // Controle de FPS (60 FPS = ~16.66ms por frame)
-	bool fastForward = false; // Modo Fast-Forward
-	bool running = true; // Flag para o loop principal
+PS1_Remake::PS1_Remake()
+{
+    isGameRunning = false;
+    std::cout << "[SYSTEM] PS1_Remake App Inicializado." << std::endl;
+}
 
-	PS1_Config.InitSDL3(); //Inicializa SDL com suporte a Vídeo e Joystick
-	PS1_Config.SetOpenGL3_3(); // [IMPORTANTE] Configura o OpenGL 3.3 Core (Requisito do Beetle HW)
+PS1_Remake::~PS1_Remake()
+{
+    std::cout << "[SYSTEM] PS1_Remake App Encerrado." << std::endl;
+}
+
+bool PS1_Remake::StartEmulator()
+{
+    const double TARGET_DT = 1000.0 / 60.0; // Controle de FPS (60 FPS = ~16.66ms por frame)
+    bool fastForward = false; // Modo Fast-Forward
+    bool running = true; // Flag para o loop principal
+
+    PS1_Config.InitSDL3(); //Inicializa SDL com suporte a Vídeo e Joystick
+    PS1_Config.SetOpenGL3_3(); // [IMPORTANTE] Configura o OpenGL 3.3 Core (Requisito do Beetle HW)
 
     SDL_Window* window = SDL_CreateWindow("PS1 Remake",1280, 960, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE); // Cria a Janela
     SDL_GLContext glContext = SDL_GL_CreateContext(window); //Cria o Contexto OpenGL (Liga a GPU)
     SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks); //Detectar o controle DUALSHOCK 4
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, "opengl"); // Cria o Renderizador OpenGL (A ponte entre o PS1 e a GPU)
-	SDL_Event event; // Variável para eventos (input)
+    SDL_Renderer* renderer = SDL_CreateRenderer(window, "opengl"); // Cria o Renderizador OpenGL (A ponte entre o PS1 e a GPU)
+    SDL_Event event; // Variável para eventos (input)
 
-	if (!renderer) // Verifica se o renderizador foi criado com sucesso
+    if (!renderer) // Verifica se o renderizador foi criado com sucesso
     {
         SDL_Log("Erro fatal: Nao foi possivel criar o renderizador OpenGL. Verifique se sua placa de video suporta OpenGL 3.3 ou superior.");
         std::string erroMsg = "Falha ao criar o Motor Gráfico (Renderer)!\nMotivo: ";
@@ -60,10 +68,10 @@ int main(int argc, char* argv[]) {
     SDL_SetRenderVSync(renderer, 1); // Sincronizar com o monitor (60Hz)
     ps1Core.InitVideo(renderer); // Conecta o vídeo!
 
-	if (!ps1Core.LoadCore(CORE_PATH)) // Carrega a DLL do emulador
+    if (!ps1Core.LoadCore(CORE_PATH)) // Carrega a DLL do emulador
     {
         SDL_Log("Erro fatal: Nao foi possivel carregar a DLL do emulador.");
-        return -1;
+        return false;
     }
 
     ps1Core.EnableHardwareRenderer(); // Ativa o modo HW
@@ -71,10 +79,10 @@ int main(int argc, char* argv[]) {
     if (!ps1Core.LoadGame(GAME_PATH)) // Carrega o Jogo
     {
         SDL_Log("Erro: Nao foi possivel carregar o jogo (verifique o caminho ou a BIOS).");
-        return -1;
+        return false;
     }
 
-	// --- LOOP PRINCIPAL ---
+    // --- LOOP PRINCIPAL ---
     ps1Core.LoadMemoryCard("D:/Users/Rodrigo/Documents/Dev/VisualStudio/Desktop/PS1_Remake/memcard1.mcr"); // Carrega o Memory Card
 
     // ***Execução do programa***
@@ -113,14 +121,14 @@ int main(int argc, char* argv[]) {
                     running = false;
                 }
 
-				// TAB: Fast-Forward (Segure para acelerar)
+                // TAB: Fast-Forward (Segure para acelerar)
                 if (event.key.key == SDLK_TAB) {
                     fastForward = true;
-				}
+                }
             }
 
             // Verifica as teclas soltas
-			if (event.type == SDL_EVENT_KEY_UP) {
+            if (event.type == SDL_EVENT_KEY_UP) {
                 if (event.key.key == SDLK_TAB) {
                     fastForward = false;
                 }
@@ -128,7 +136,7 @@ int main(int argc, char* argv[]) {
         } // <--- FIM DO WHILE DO POLL EVENT (Muito importante fechar aqui)
 
         // --- PROCESSAMENTO DO FRAME ---
-        ps1Core.m_frame_drawn = false; // Abaixa a bandeira
+        ps1Core.m_frame_drawn = false;
         ps1Core.RunFrame(); // O Core faz os próprios cálculos de Viewport lá dentro!
 
         // *** LIMITADOR DE VELOCIDADE (Sleep) ***
@@ -145,9 +153,9 @@ int main(int argc, char* argv[]) {
         if (ps1Core.m_frame_drawn)
         {
             ps1Core.PresentFBO(window); // Pega a tela invisível e projeta perfeitamente centrada!
-			SDL_GL_SwapWindow(window); // Troca os buffers (Mostra a imagem na tela)
+            SDL_GL_SwapWindow(window); // Troca os buffers (Mostra a imagem na tela)
         }
-	} // <--- Fim do da execução do programa (Loop Principal)
+    } // <--- Fim do da execução do programa (Loop Principal)
 
     // ANTES DE FECHAR O EMULADOR (Save automático do Memory Card)
     std::cout << "Desligando o console... Salvando Memory Card..." << std::endl;
@@ -155,5 +163,31 @@ int main(int argc, char* argv[]) {
     ps1Core.Unload();
     if (g_gamepad) SDL_CloseGamepad(g_gamepad);
     SDL_Quit();
+
+    return true;
+}
+
+void PS1_Remake::Run()
+{
+    // Futuramente, a lógica será:
+    // 1. Abre a UI
+    // 2. O usuário escolhe o jogo
+    // 3. isGameRunning = true
+    // 4. Chama StartEmulator()
+
+    // Por enquanto, vamos direto para o emulador para testar:
+    std::cout << "[SYSTEM] Iniciando fluxo principal..." << std::endl;
+    StartEmulator();
+}
+
+bool PS1_Remake::StartUI()
+{
+    // O código do Menu que você desenhou no Figma virá para cá depois
+    return true;
+}
+
+int main(int argc, char* argv[]) {
+    PS1_Remake app;
+    app.Run();
     return 0;
 }
