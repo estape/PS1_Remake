@@ -26,6 +26,10 @@ add_executable(${PROJECT_NAME}
     "source/PS1_Remake/Engine/include/CD_Management.h"
     "source/PS1_Remake/Engine/include/json.hpp"
 
+    #System
+    "source/PS1_Remake/Misc/include/ClassErrorHandler.h"
+    "source/PS1_Remake/Misc/src/ClassErrorHandler.cpp"
+
     #SDL Base
     #"source/PS1_Remake/View/src/BtnClass.cpp" 
     #"source/PS1_Remake/View/include/BtnClass.h"

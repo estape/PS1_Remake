@@ -1,4 +1,5 @@
 ﻿#include "PS1_Remake.h"
+#include "source/PS1_Remake/Misc/include/ClassErrorHandler.h"
 
 // --- In future it will be filled from front-end ---
 const std::string CORE_PATH = "mednafen_psx_hw_libretro.dll";
@@ -6,7 +7,7 @@ const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Gran
 
 Core ps1Core; // Core functions from Engine
 SetAttr PS1_Config; // PS1R configuration (SDL, OpenGL and Gamepad)
-ErrorHandle errHandle; // Class with functions to handle errors.
+ClassErrorHandler errHandle; // Class with functions to handle errors.
 
 // --- GLOBAL VARIABLES ---
 SDL_Gamepad* g_gamepad = nullptr; // Vaviavel gamepad
