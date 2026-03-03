@@ -1,39 +1,39 @@
 #include "../include/Core.h"
 
-// --- GLOBAIS ESTÁTICAS (Visíveis apenas neste arquivo) ---
+// --- STATICS GLOBAL ---
 static SDL_Texture* g_gameTexture = nullptr;
 static SDL_Renderer* g_renderer = nullptr;
 static SDL_AudioStream* g_audioStream = nullptr;
-static unsigned int g_fbo = 0; // O Framebuffer Object (A Tela Invisível onde o PS1 desenha os frames)
+static unsigned int g_fbo = 0; // Framebuffer Object (Invisible screen that where PS1 draw frames)
 static unsigned int g_fbo_texture = 0;
-static unsigned int g_last_width = 1024; // Tamanho de largura padrão para o FBO
-static unsigned int g_last_height = 1024; // Tamanho de altura padrão para o FBO
+static unsigned int g_last_width = 1024; // Default weight for FBO
+static unsigned int g_last_height = 1024; // Default height for FBO
 static struct retro_hw_render_callback g_hw_render = {};
 static SDL_Gamepad* s_activeGamepad = nullptr;
 
 /**
-* Lista de filtros de pós-processamento, separados por valor de 0 a 5
-* @param 0 "nearest" - O clássico pixelado, sem suavização (Padrão)
-* @param 1 "bilinear" - Suavização básica, deixa a imagem mais suave, mas pode borrar um pouco
-* @param 2 "3-point" - Um filtro intermediário, que tenta equilibrar nitidez e suavização (Recomendado para quem quer um visual mais "limpo" sem perder detalhes)
-* @param 3 "xBR" - Um filtro avançado que suaviza a imagem sem borrar, ideal para jogos com muitos pixels grandes (Pode causar artefatos em jogos com muitos detalhes pequenos)
-* @param 4 "SABR" - Um filtro de alta qualidade que preserva detalhes e suaviza a imagem, ótimo para jogos com gráficos mais complexos
-* @param 5 "JINC2" - O filtro mais avançado, que oferece a melhor qualidade de imagem possível, mas pode ser mais pesado para o hardware (Recomendado para PCs mais potentes)
-* @return A string representando o filtro de pós-processamento escolhido, baseado no valor do comando de ambiente "beetle_psx_hw_filter" ou "beetle_psx_filter"
+* Post-processing filters, options 0 to 5
+* @param 0 "nearest" - No filter (Default)
+* @param 1 "bilinear" - Basic smoothing, makes the image smoother, but may blur slightly.
+* @param 2 "3-point" - An intermediate filter that attempts to balance sharpness and smoothing (Recommended for those who want a "cleaner" look without losing detail).
+* @param 3 "xBR" - An advanced filter that smooths the image without blurring, ideal for games with many large pixels (May cause artifacts in games with many small details).
+* @param 4 "SABR" - A high-quality filter that preserves detail and smooths the image, great for games with more complex graphics.
+* @param 5 "JINC2" - The most advanced filter, offering the best possible image quality, but may be more demanding on hardware (Recommended for more powerful PCs).
+* @return The string representing the chosen post-processing filter, based on the command value. "beetle_psx_hw_filter" or "beetle_psx_filter"
 **/
 static const char* posProcessFilters[] = { "nearest", "bilinear", "3-point", "xBR", "SABR", "JINC2" };
 
-// Cache dos motores de vibração
+// Controller rumbble cache
 static uint16_t s_rumble_strong = 0;
 static uint16_t s_rumble_weak = 0;
 static bool s_rumble_enabled = true;
 
-// Estado do Controle (Começa Digital para segurança)
+// Set controller status (Digital is default)
 static unsigned s_currentDeviceId = RETRO_DEVICE_PS_DIGITAL;
 static bool s_btnTouchpadLastState = false;
 
-// Ponteiro GLOBAL para a função da DLL (Para o InputPoll usar)
-// Redefinimos o tipo aqui para uso local estático
+// Ponteiro GLOBAL para a funÃ§Ã£o da DLL (Para o InputPoll usar)
+// Redefinimos o tipo aqui para uso local estÃ¡tico
 typedef void (*global_set_port_t)(unsigned, unsigned);
 static global_set_port_t g_set_controller_func = nullptr;
 
@@ -71,11 +71,11 @@ void RETRO_CALLCONV CoreLog(enum retro_log_level level, const char* fmt, ...) {
 }
 
 uintptr_t Core::GetCurrentFramebuffer() {
-    return g_fbo; // Manda a GPU desenhar na nossa tela invisível!
+    return g_fbo; // Manda a GPU desenhar na nossa tela invisï¿½vel!
 }
 
 retro_proc_address_t Core::GetProcAddress(const char* sym) {
-    // Retornamos direto, sem o SDL_Log, para não poluir o console com os falsos positivos do OES.
+    // Retornamos direto, sem o SDL_Log, para nï¿½o poluir o console com os falsos positivos do OES.
     return (retro_proc_address_t)SDL_GL_GetProcAddress(sym);
 }
 
@@ -117,7 +117,7 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
         // 1. Copia as flags vitais do Core (Depth e Stencil)
         s_instance->m_hw_render_callback = *cb;
 
-        // 2. Registra nossas funções
+        // 2. Registra nossas funï¿½ï¿½es
         s_instance->m_hw_render_callback.get_current_framebuffer = Core::GetCurrentFramebuffer;
         s_instance->m_hw_render_callback.get_proc_address = Core::GetProcAddress;
 
@@ -137,7 +137,7 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
             var->value = "disable";
             return true;
         }
-		// Aumenta a resolução interna para 4x
+		// Aumenta a resoluï¿½ï¿½o interna para 4x
         if (key == "beetle_psx_hw_internal_resolution" || key == "beetle_psx_internal_resolution") {
             var->value = "4x";
             return true;
@@ -147,7 +147,7 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
             var->value = "hardware";
             return true;
         }
-        // Ativa filtros de pós-processamento
+        // Ativa filtros de pï¿½s-processamento
         if (key == "beetle_psx_hw_filter" || key == "beetle_psx_filter") {
             var->value = posProcessFilters[2];
             return true;
@@ -158,15 +158,15 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
             var->value = "enable";
             return true;
         }
-		// Desliga o corte de bordas (que pode causar os famosos "polígonos tremendo" e "texturas derretendo" em alguns jogos)
+		// Desliga o corte de bordas (que pode causar os famosos "polï¿½gonos tremendo" e "texturas derretendo" em alguns jogos)
         if (key == "beetle_psx_hw_image_crop" || key == "beetle_psx_image_crop") {
             var->value = "disabled";
             return true;
         }
-        // Fim dos polígonos tremendo e texturas derretendo!
+        // Fim dos polï¿½gonos tremendo e texturas derretendo!
         if (key == "beetle_psx_hw_pgxp_mode" || key == "beetle_psx_pgxp_mode")
         {
-            // "memory" é o modo mais seguro e estável. 
+            // "memory" ï¿½ o modo mais seguro e estï¿½vel. 
             // (Existe o "memory + CPU", mas pode causar crashes em alguns jogos).
             var->value = "memory";
             return true;
@@ -179,7 +179,7 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
         }
         if (key == "beetle_psx_hw_pgxp_vertex" || key == "beetle_psx_pgxp_vertex")
         {
-            // Alinha os vértices dos modelos 3D
+            // Alinha os vï¿½rtices dos modelos 3D
             var->value = "enabled";
             return true;
         }
@@ -221,7 +221,7 @@ void Core::PresentFBO(SDL_Window* window) {
     int winW, winH;
     SDL_GetWindowSize(window, &winW, &winH);
 
-    // Trava a tela em 4:3, simulando uma TV de tubo e lidando com resoluções dinamicas do PS1
+    // Trava a tela em 4:3, simulando uma TV de tubo e lidando com resoluï¿½ï¿½es dinamicas do PS1
     float targetAspect = 4.0f / 3.0f;
     float windowAspect = (float)winW / (float)winH;
 
@@ -247,8 +247,8 @@ void Core::PresentFBO(SDL_Window* window) {
         my_glClear(GL_COLOR_BUFFER_BIT);
     }
 
-    // O Copia-e-Cola Mágico do OpenGL!
-    // Pega a imagem da Tela Invisível e "estica" perfeitamente no centro do monitor
+    // O Copia-e-Cola Mï¿½gico do OpenGL!
+    // Pega a imagem da Tela Invisï¿½vel e "estica" perfeitamente no centro do monitor
     my_glBindFramebuffer(0x8CA8, g_fbo); // GL_READ_FRAMEBUFFER 
     my_glBindFramebuffer(0x8CA9, 0);     // GL_DRAW_FRAMEBUFFER
 
@@ -256,7 +256,7 @@ void Core::PresentFBO(SDL_Window* window) {
         viewX, viewY, viewX + viewW, viewY + viewH,
         GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
-    // Muda o foco novamente para o FBO para renderizar o próximo frame
+    // Muda o foco novamente para o FBO para renderizar o prï¿½ximo frame
     my_glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
 }
 
@@ -327,10 +327,10 @@ void Core::InputPoll() {
         }
     }
 
-    // --- LÓGICA DO TOUCHPAD (Troca Modo Digital/Modo analógico) ---
+    // --- Lï¿½GICA DO TOUCHPAD (Troca Modo Digital/Modo analï¿½gico) ---
     bool isPressed = SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_TOUCHPAD);
 
-    // Alterna entre os modos digital e analógico apenas quando aperta (Borda de subida)
+    // Alterna entre os modos digital e analï¿½gico apenas quando aperta (Borda de subida)
     if (isPressed && !s_btnTouchpadLastState) {
 
         // Inverte: 1 -> 5 ou 5 -> 1
@@ -338,7 +338,7 @@ void Core::InputPoll() {
             ? RETRO_DEVICE_PS_DUALSHOCK
             : RETRO_DEVICE_PS_DIGITAL;
 
-        // Se a função da DLL foi carregada com sucesso, usamos ela!
+        // Se a funï¿½ï¿½o da DLL foi carregada com sucesso, usamos ela!
         if (g_set_controller_func) {
             g_set_controller_func(0, s_currentDeviceId);
 
@@ -354,16 +354,16 @@ void Core::InputPoll() {
 void Core::ToggleRumble() {
     s_rumble_enabled = !s_rumble_enabled; // Inverte o estado (Se era true, vira false e vice-versa)
 
-    // Mostra no console para você saber se ligou ou desligou
+    // Mostra no console para vocï¿½ saber se ligou ou desligou
     std::cout << "[CONTROLE] Vibracao: " << (s_rumble_enabled ? "LIGADA" : "DESLIGADA") << std::endl;
 }
 
 bool Core::SetRumbleState(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
-    if (port != 0 || !s_activeGamepad) return false; // Só vibra o Player 1
+    if (port != 0 || !s_activeGamepad) return false; // Sï¿½ vibra o Player 1
 
     if (!s_rumble_enabled)
     {
-		SDL_RumbleGamepad(s_activeGamepad, 0, 0, 0); // Desliga a vibração imediatamente
+		SDL_RumbleGamepad(s_activeGamepad, 0, 0, 0); // Desliga a vibraï¿½ï¿½o imediatamente
         return true;
     }
     // 1. Atualiza o cache do motor correspondente
@@ -377,9 +377,9 @@ bool Core::SetRumbleState(unsigned port, enum retro_rumble_effect effect, uint16
     }
 
     /*
-    * 2. Dispara a vibração na SDL3!
-    * Enviamos a força dos dois motores. A duração é "infinita" (0xFFFF) 
-    * porque o próprio emulador vai mandar strength = 0 quando for a hora de parar.
+    * 2. Dispara a vibraï¿½ï¿½o na SDL3!
+    * Enviamos a forï¿½a dos dois motores. A duraï¿½ï¿½o ï¿½ "infinita" (0xFFFF) 
+    * porque o prï¿½prio emulador vai mandar strength = 0 quando for a hora de parar.
     */ 
     SDL_RumbleGamepad(s_activeGamepad, s_rumble_strong, s_rumble_weak, 0xFFFF);
 
@@ -394,7 +394,7 @@ int16_t Core::InputState(unsigned port, unsigned device, unsigned index, unsigne
 
         SDL_GamepadAxis targetAxis;
 
-        // 1. SELECIONA O EIXO E A CONFIGURAÇÃO
+        // 1. SELECIONA O EIXO E A CONFIGURAï¿½ï¿½O
         float deadzone, saturation;
 
         if (index == 0) {
@@ -417,18 +417,18 @@ int16_t Core::InputState(unsigned port, unsigned device, unsigned index, unsigne
         float val = (float)rawVal;
         float absVal = std::abs(val);
 
-        // 2. LÓGICA DE DEADZONE SIMPLES (Corta o centro)
+        // 2. Lï¿½GICA DE DEADZONE SIMPLES (Corta o centro)
         if (absVal < deadzone) return 0;
 
-        /* 3. LÓGICA DE SATURAÇÃO (Agressiva)
-        Se passar da saturação, força o valor máximo permitido pelo PS1 (32700)
+        /* 3. Lï¿½GICA DE SATURAï¿½ï¿½O (Agressiva)
+        Se passar da saturaï¿½ï¿½o, forï¿½a o valor mï¿½ximo permitido pelo PS1 (32700)
         Mantendo o sinal original (positivo ou negativo) */
         if (absVal >= saturation) {
             return (val > 0) ? 32700 : -32700;
         }
 
-         /* 4. INTERPOLAÇÃO LINEAR(Para o meio do caminho)
-         Se está entre a deadzone e a saturação, escala suavemente
+         /* 4. INTERPOLAï¿½ï¿½O LINEAR(Para o meio do caminho)
+         Se estï¿½ entre a deadzone e a saturaï¿½ï¿½o, escala suavemente
          Ex: (Valor - Dead) / (Sat - Dead) * Max */
         float normalized = (absVal - deadzone) / (saturation - deadzone);
         float finalVal = normalized * 32700.0f;
@@ -439,7 +439,7 @@ int16_t Core::InputState(unsigned port, unsigned device, unsigned index, unsigne
         return (int16_t)finalVal;
     }
 
-    // --- BOTÕES (Mantenha igual) ---
+    // --- BOTï¿½ES (Mantenha igual) ---
     if (device == RETRO_DEVICE_JOYPAD) {
         switch (id) {
         case RETRO_DEVICE_ID_JOYPAD_B:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_SOUTH);
@@ -508,11 +508,11 @@ bool Core::LoadCore(const std::string& dllPath) {
         SDL_Log("AVISO: Funcoes de Save State nao encontradas na DLL. F5/F9 nao funcionarao.");
     }
 
-    // --- CARREGAMENTO CRÍTICO ---
+    // --- CARREGAMENTO CRï¿½TICO ---
     // 1. Carrega o ponteiro para a Classe
     m_retro_set_controller_port_device = (retro_set_controller_port_device_t)load_sym("retro_set_controller_port_device");
 
-    // 2. Copia o ponteiro para a Variável Global (para o InputPoll usar)
+    // 2. Copia o ponteiro para a Variï¿½vel Global (para o InputPoll usar)
     g_set_controller_func = (global_set_port_t)m_retro_set_controller_port_device;
 
     auto set_video = (retro_set_video_refresh_t)load_sym("retro_set_video_refresh");
@@ -557,7 +557,7 @@ bool Core::LoadGame(const std::string& gamePath) {
         // 2. AGORA SIM! Damos a partida na GPU.
         if (m_hw_render_enabled) {
 
-            // --- [NOVO] CRIAÇÃO DA TELA INVISÍVEL (FBO) ---
+            // --- [NOVO] CRIAï¿½ï¿½O DA TELA INVISï¿½VEL (FBO) ---
             typedef void (*glGenFramebuffers_t)(int, unsigned int*);
             typedef void (*glBindFramebuffer_t)(unsigned int, unsigned int);
             typedef void (*glGenTextures_t)(int, unsigned int*);
@@ -585,7 +585,7 @@ bool Core::LoadGame(const std::string& gamePath) {
                 auto my_glRenderbufferStorage = (glRenderbufferStorage_t)SDL_GL_GetProcAddress("glRenderbufferStorage");
                 auto my_glFramebufferRenderbuffer = (glFramebufferRenderbuffer_t)SDL_GL_GetProcAddress("glFramebufferRenderbuffer");
 
-                // Cria a Tela Invisível base
+                // Cria a Tela Invisï¿½vel base
                 my_glGenFramebuffers(1, &g_fbo);
                 my_glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
 
@@ -606,7 +606,7 @@ bool Core::LoadGame(const std::string& gamePath) {
                     my_glFramebufferRenderbuffer(GL_FRAMEBUFFER, 0x821A, 0x8D41, rbo); // 0x821A = GL_DEPTH_STENCIL_ATTACHMENT
                 }
 
-                my_glBindFramebuffer(GL_FRAMEBUFFER, 0); // Desconecta para segurança
+                my_glBindFramebuffer(GL_FRAMEBUFFER, 0); // Desconecta para seguranï¿½a
                 SDL_Log("FBO Completo (Cor + Profundidade) criado com sucesso!");
             }
 
@@ -628,7 +628,7 @@ bool Core::LoadGame(const std::string& gamePath) {
 void Core::RunFrame() { if (m_retro_run) m_retro_run(); }
 
 void Core::Unload() {
-    // 1º LUGAR: Desliga a Placa de Vídeo (Enquanto a DLL ainda existe!)
+    // 1ï¿½ LUGAR: Desliga a Placa de Vï¿½deo (Enquanto a DLL ainda existe!)
     if (m_hw_render_enabled) {
         auto safe_context_destroy = m_hw_render_callback.context_destroy;
         if (safe_context_destroy) {
@@ -642,12 +642,12 @@ void Core::Unload() {
         g_audioStream = nullptr;
     }
 
-    // 2º LUGAR: Desliga o sistema do emulador
+    // 2ï¿½ LUGAR: Desliga o sistema do emulador
     if (m_retro_deinit) {
         m_retro_deinit();
     }
 
-    // 3º LUGAR: O Windows limpa a DLL ao fechar. Deixamos NULL por segurança.
+    // 3ï¿½ LUGAR: O Windows limpa a DLL ao fechar. Deixamos NULL por seguranï¿½a.
     m_coreHandle = nullptr;
 }
 
@@ -657,10 +657,10 @@ void Core::InitVideo(SDL_Renderer* renderer) {
 }
 
 bool Core::SaveState(const std::string& filepath) {
-    // 1. O PRINT VEM PRIMEIRO (Antes de qualquer verificação)
+    // 1. O PRINT VEM PRIMEIRO (Antes de qualquer verificaï¿½ï¿½o)
     std::cout << "[DEBUG] >>> TENTANDO SALVAR O ESTADO <<<" << std::endl;
 
-    // 2. Agora verificamos se as funções existem
+    // 2. Agora verificamos se as funï¿½ï¿½es existem
     if (m_retro_serialize_size == nullptr) {
         std::cout << "[ERRO] Ponteiro 'serialize_size' esta NULO!" << std::endl;
         return false;
@@ -670,7 +670,7 @@ bool Core::SaveState(const std::string& filepath) {
         return false;
     }
 
-    // 3. O resto do código continua...
+    // 3. O resto do cï¿½digo continua...
     size_t stateSize = m_retro_serialize_size();
     std::cout << "[DEBUG] Tamanho necessario: " << stateSize << " bytes." << std::endl;
 
@@ -711,13 +711,13 @@ bool Core::LoadState(const std::string& filepath) {
     size_t fileSize = inFile.tellg();
     inFile.seekg(0, std::ios::beg);
 
-    // 3. Verifica se bate com o que o Core espera (Segurança básica)
+    // 3. Verifica se bate com o que o Core espera (Seguranï¿½a bï¿½sica)
     size_t expectedSize = m_retro_serialize_size();
     if (fileSize != expectedSize) {
         SDL_Log("AVISO: Tamanho do Save (%zu) diferente do esperado pelo Core (%zu). Tentando mesmo assim...", fileSize, expectedSize);
     }
 
-    // 4. Lê o arquivo para a memória
+    // 4. Lï¿½ o arquivo para a memï¿½ria
     std::vector<uint8_t> stateBuffer(fileSize);
     inFile.read((char*)stateBuffer.data(), fileSize);
     inFile.close();
@@ -735,7 +735,7 @@ bool Core::LoadState(const std::string& filepath) {
 bool Core::LoadMemoryCard(const std::string& filepath) {
     if (!m_retro_get_memory_data || !m_retro_get_memory_size) return false;
 
-    // Pede ao Core o tamanho do Memory Card e o ponteiro para a memória
+    // Pede ao Core o tamanho do Memory Card e o ponteiro para a memï¿½ria
     size_t mcSize = m_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
     void* mcData = m_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
 
