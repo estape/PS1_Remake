@@ -89,7 +89,7 @@ bool PS1_Remake::StartEmulator()
 
     // ***Running the program***
     while (running) {
-        uint64_t startParams = SDL_GetTicks(); // Marca o tempo de início do frame
+        uint64_t startParams = SDL_GetTicks(); // Get the start time of the frame (for FPS control)
 
         // --- POLL EVENT LOOP ---
         // *** Every input will be check it and registered in log ***

@@ -31,8 +31,8 @@ add_executable(${PROJECT_NAME}
     "source/PS1_Remake/Misc/src/ClassErrorHandler.cpp"
 
     #SDL Base
-    #"source/PS1_Remake/View/src/BtnClass.cpp" 
-    #"source/PS1_Remake/View/include/BtnClass.h"
+    "source/PS1_Remake/View/src/BtnClass.cpp" 
+    "source/PS1_Remake/View/include/BtnClass.h"
 )
 
 # --- 3. AMBIENTE DE DESENVOLVIMENTO (WINDOWS) ---
