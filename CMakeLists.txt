@@ -30,7 +30,7 @@ add_executable(${PROJECT_NAME}
     "source/PS1_Remake/Misc/include/ClassErrorHandler.h"
     "source/PS1_Remake/Misc/src/ClassErrorHandler.cpp"
 
-    #SDL Base
+    #User Interface
     "source/PS1_Remake/View/src/BtnClass.cpp" 
     "source/PS1_Remake/View/include/BtnClass.h"
 )
@@ -38,18 +38,24 @@ add_executable(${PROJECT_NAME}
 # --- 3. AMBIENTE DE DESENVOLVIMENTO (WINDOWS) ---
 set(SDL3_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3-3.4.2")
 set(SDL3_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_image-3.4.0")
+set(SDL3_TFF "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_ttf-3.2.2")
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
     "${SDL3_PATH}/include"
     "${SDL3_IMAGE_PATH}/include"
+    "${SDL3_TFF}/include"
 )
 target_link_directories(${PROJECT_NAME} PRIVATE 
     "${SDL3_PATH}/lib/x64"
     "${SDL3_IMAGE_PATH}/lib/x64"
+    "${SDL3_TFF}/lib/x64"
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3 SDL3_image)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3 SDL3_image SDL3_ttf)
 
-# --- 4. REGRAS DE CÓPIA PÓS-COMPILAÇÃO ---
+# --- 4. Copiar a pasta inteira de Assets ---
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
+# --- 5. REGRAS DE CÓPIA PÓS-COMPILAÇÃO ---
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/system"
@@ -66,6 +72,10 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${SDL3_IMAGE_PATH}/lib/x64/SDL3_image.dll"
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3_image.dll"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+    "${SDL3_IMAGE_PATH}/lib/x64/SDL3_ttf.dll"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3_ttf.dll"
     
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${SDL3_IMAGE_PATH}/lib/x64/optional/libpng16-16.dll"
