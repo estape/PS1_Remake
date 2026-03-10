@@ -2,4 +2,5 @@
 out/
 SDL3-3.4.2/
 SDL3_image-3.4.0/
+SDL3_ttf-3.2.2/
 json_lib/
