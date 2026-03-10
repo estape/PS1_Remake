@@ -1,0 +1,10 @@
+Assets/
+.vs/
+out/
+SDL3-3.4.2/
+SDL3_ttf-3.2.2/
+SDL3_image-3.4.0/
+json_lib/
+*src
+*mcr
+*bin
