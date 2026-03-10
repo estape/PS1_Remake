@@ -35,49 +35,33 @@ add_executable(${PROJECT_NAME}
     "source/PS1_Remake/View/include/BtnClass.h"
 )
 
-# --- 3. AMBIENTE DE DESENVOLVIMENTO (WINDOWS) ---
-set(SDL3_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3-3.4.2")
-set(SDL3_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_image-3.4.0")
-set(SDL3_TFF "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_ttf-3.2.2")
+# --- 3. AMBIENTE DE DESENVOLVIMENTO (LINUX NATIVO) ---
+# O CMake acha automaticamente as libs que instalamos com 'sudo make install'
+find_package(SDL3 REQUIRED)
+find_package(SDL3_image REQUIRED)
+find_package(SDL3_ttf REQUIRED)
+find_package(Vulkan REQUIRED) # <--- O novo motor!
 
-target_include_directories(${PROJECT_NAME} PRIVATE 
-    "${SDL3_PATH}/include"
-    "${SDL3_IMAGE_PATH}/include"
-    "${SDL3_TFF}/include"
+# Linka de forma moderna e segura
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    SDL3::SDL3 
+    SDL3_image::SDL3_image 
+    SDL3_ttf::SDL3_ttf
+    Vulkan::Vulkan
 )
-target_link_directories(${PROJECT_NAME} PRIVATE 
-    "${SDL3_PATH}/lib/x64"
-    "${SDL3_IMAGE_PATH}/lib/x64"
-    "${SDL3_TFF}/lib/x64"
-)
-target_link_libraries(${PROJECT_NAME} PRIVATE SDL3 SDL3_image SDL3_ttf)
 
-# --- 4. Copiar a pasta inteira de Assets ---
+# --- 4. COPIAR RECURSOS (ASSETS) ---
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/Assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # --- 5. REGRAS DE CÓPIA PÓS-COMPILAÇÃO ---
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    # Copia a pasta system necessária para o emulador
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/system"
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/system"
     
+    # Copia o núcleo do Mednafen (HW) que compilamos/baixamos para Linux
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${CMAKE_CURRENT_SOURCE_DIR}/source/Mednafen/src/mednafen_psx_hw_libretro.dll"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/mednafen_psx_hw_libretro.dll"
-
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${SDL3_PATH}/lib/x64/SDL3.dll"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3.dll"
-    
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${SDL3_IMAGE_PATH}/lib/x64/SDL3_image.dll"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3_image.dll"
-
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${SDL3_IMAGE_PATH}/lib/x64/SDL3_ttf.dll"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3_ttf.dll"
-    
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${SDL3_IMAGE_PATH}/lib/x64/optional/libpng16-16.dll"
-    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/libpng16-16.dll"
+    "${CMAKE_CURRENT_SOURCE_DIR}/source/Mednafen/src/mednafen_psx_hw_libretro.so"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>/mednafen_psx_hw_libretro.so"
 )

@@ -1,6 +1,6 @@
 .vs/
 out/
-SDL3-3.4.2/
-SDL3_image-3.4.0/
-SDL3_ttf-3.2.2/
+SDL3/
+SDL3_image/
+SDL3_ttf/
 json_lib/
