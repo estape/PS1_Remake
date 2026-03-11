@@ -3,7 +3,7 @@
 
 // --- In future it will be filled from front-end ---
 const std::string CORE_PATH = "mednafen_psx_hw_libretro.dll";
-const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Grand Theft Auto (USA).cue";
+const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Spider-Man 2 - Enter - Electro (USA).cue";
 
 Core ps1Core; // Core functions from Engine
 SetAttr PS1_Config; // PS1R configuration (SDL, OpenGL and Gamepad)
@@ -78,10 +78,15 @@ bool PS1_Remake::StartEmulator()
 
     ps1Core.EnableHardwareRenderer(); // Start Hardware Mode
     SDL_GL_MakeCurrent(window, glContext); // Create context OpenGL before to load game
-    if (!ps1Core.LoadGame(GAME_PATH)) // Load game, if GAME_PATH is not valid emulator will shutdown
+    if (!ps1Core.LoadGame(GAME_PATH)) // Tenta carregar o jogo com a nossa função blindada
     {
-        SDL_Log("Erro: Nao foi possivel carregar o jogo (verifique o caminho ou a BIOS).");
-        return false;
+        SDL_ShowSimpleMessageBox(
+            SDL_MESSAGEBOX_ERROR,
+            "Erro de Carregamento - PS1 Remake",
+            "Falha ao carregar o jogo!\nVerifique se o caminho da ISO esta correto e se a BIOS esta na pasta 'system'.",
+            window
+        );
+        return false; // Fecha o emulador com segurança
     }
 
     // --- MAIN LOOP ---

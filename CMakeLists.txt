@@ -36,9 +36,9 @@ add_executable(${PROJECT_NAME}
 )
 
 # --- 3. AMBIENTE DE DESENVOLVIMENTO (WINDOWS) ---
-set(SDL3_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3-3.4.2")
-set(SDL3_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_image-3.4.0")
-set(SDL3_TFF "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_ttf-3.2.2")
+set(SDL3_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3")
+set(SDL3_IMAGE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_image")
+set(SDL3_TFF "${CMAKE_CURRENT_SOURCE_DIR}/SDL3_ttf")
 
 target_include_directories(${PROJECT_NAME} PRIVATE 
     "${SDL3_PATH}/include"
@@ -74,7 +74,7 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3_image.dll"
 
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    "${SDL3_IMAGE_PATH}/lib/x64/SDL3_ttf.dll"
+    "${SDL3_TFF}/lib/x64/SDL3_ttf.dll"
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/SDL3_ttf.dll"
     
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
