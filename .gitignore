@@ -5,6 +5,5 @@ SDL3/
 SDL3_ttf/
 SDL3_image/
 json_lib/
-*src
 *mcr
 *bin
