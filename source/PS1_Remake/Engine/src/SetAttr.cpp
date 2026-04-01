@@ -1,7 +1,62 @@
 #include "../include/SetAttr.h"
-#include <utility> // para std::pair
+#include <utility>
+#include <unordered_map>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
 
 SDL_Gamepad* _gamepad = nullptr;
+
+// --- SISTEMA DE DATABASE E SCANNER ---
+std::unordered_map<std::string, std::string> g_gameDatabase;
+
+void SetAttr::LoadGameDatabase(const std::string& csvFilePath) {
+    std::ifstream file(csvFilePath);
+    if (!file.is_open()) return;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        size_t commaPos = line.find(',');
+        if (commaPos != std::string::npos) {
+            std::string id = line.substr(0, commaPos);
+            std::string name = line.substr(commaPos + 1);
+            id.erase(id.find_last_not_of(" \n\r\t") + 1);
+            name.erase(name.find_last_not_of(" \n\r\t") + 1);
+            g_gameDatabase[id] = name;
+        }
+    }
+}
+
+std::string SetAttr::ExtractPS1GameID(const std::string& binPath) {
+    std::ifstream file(binPath, std::ios::binary);
+    if (!file.is_open()) return "";
+
+    const size_t CHUNK_SIZE = 1024 * 1024; // Lê de 1 em 1 Megabyte
+    std::vector<char> buffer(CHUNK_SIZE);
+    std::string anchor = "cdrom:\\";
+
+    while (file) {
+        std::streampos currentPos = file.tellg();
+        file.read(buffer.data(), CHUNK_SIZE);
+        size_t bytesRead = file.gcount();
+        if (bytesRead == 0) break;
+
+        auto it = std::search(buffer.begin(), buffer.begin() + bytesRead, anchor.begin(), anchor.end());
+
+        if (it != buffer.begin() + bytesRead && std::distance(buffer.begin(), it) + anchor.length() + 11 <= bytesRead) {
+            std::string rawID(it + anchor.length(), it + anchor.length() + 11);
+            std::string cleanID = "";
+            for (char c : rawID) {
+                if (c == '_') cleanID += '-';
+                else if (c != '.' && c != ';') cleanID += c;
+            }
+            return cleanID;
+        }
+        if (file) file.seekg(currentPos + (std::streampos)(CHUNK_SIZE - anchor.length() - 15));
+    }
+    return "";
+}
 
 int SetAttr::InitSDL3()
 {

@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include "source/PS1_Remake/Engine/include/Core.h"
 #include "source/PS1_Remake/Engine/include/SetAttr.h"
+#include "source/PS1_Remake/Misc/include/ClassErrorHandler.h"
 #include <iostream>
 
 class PS1_Remake
@@ -14,7 +15,7 @@ public:
     void Run();
 
 private:
-    bool StartEmulator();
+    bool StartEmulator(const std::string GamePath);
     bool StartUI();
 
     bool isGameRunning;

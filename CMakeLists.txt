@@ -1,15 +1,18 @@
 ﻿cmake_minimum_required(VERSION 3.16)
 project("PS1_Remake")
 
-# --- 1. CONFIGURAÇÕES DO C++ ---
+# --- C++ CONFIG ---
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- 2. SEUS ARQUIVOS DO EMULADOR ---
+# --- SOURCE FILES ---
 add_executable(${PROJECT_NAME} 
     #Main
     "PS1_Remake.cpp" 
     "PS1_Remake.h"
+
+    #Libretro
+    "source/PS1_Remake/Engine/include/libretro.h"
 
     #Engine 
     "source/PS1_Remake/Engine/src/Core.cpp" 
@@ -28,12 +31,7 @@ add_executable(${PROJECT_NAME}
 
     #System
     "source/PS1_Remake/Misc/include/ClassErrorHandler.h"
-    "source/PS1_Remake/Misc/src/ClassErrorHandler.cpp"
-
-    #User Interface
-    "source/PS1_Remake/View/src/BtnClass.cpp" 
-    "source/PS1_Remake/View/include/BtnClass.h"
-)
+    "source/PS1_Remake/Misc/src/ClassErrorHandler.cpp")
 
 # --- 3. AMBIENTE DE DESENVOLVIMENTO (WINDOWS) ---
 set(SDL3_PATH "${CMAKE_CURRENT_SOURCE_DIR}/SDL3")

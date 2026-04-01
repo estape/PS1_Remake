@@ -65,9 +65,11 @@
 // Comandos de Ambiente
 #define RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY 9
 #define RETRO_ENVIRONMENT_SET_PIXEL_FORMAT 10
+#define RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE 13
 #define RETRO_ENVIRONMENT_SET_HW_RENDER 14
 #define RETRO_ENVIRONMENT_GET_VARIABLE 15
 #define RETRO_HW_FRAME_BUFFER_VALID ((void *)-1)
+#define RETRO_ENVIRONMENT_SET_RUMBLE_INTERFACE 23
 #define RETRO_ENVIRONMENT_GET_LOG_INTERFACE 27
 #define RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY 31
 
@@ -114,6 +116,26 @@ typedef void (*retro_hw_context_reset_t)(void);
 typedef uintptr_t(*retro_hw_get_current_framebuffer_t)(void);
 typedef retro_proc_address_t(*retro_hw_get_proc_address_t)(const char* sym);
 
+struct retro_game_info {
+    const char* path;
+    const void* data;
+    size_t size;
+    const char* meta;
+};
+
+struct retro_disk_control_callback {
+    bool (*set_eject_state)(bool ejected);
+    bool (*get_eject_state)(void);
+    unsigned (*get_image_index)(void);
+    bool (*set_image_index)(unsigned index);
+    unsigned (*get_num_images)(void);
+    bool (*replace_image_index)(unsigned index, const struct retro_game_info* info);
+    bool (*add_image_index)(void);
+};
+
+extern retro_disk_control_callback g_diskControl;
+extern bool g_diskControlExtExists;
+
 struct retro_hw_render_callback {
     enum retro_hw_context_type context_type;
     retro_hw_context_reset_t context_reset;
@@ -140,13 +162,6 @@ struct retro_variable {
     const char* value;
 };
 
-struct retro_game_info {
-    const char* path;
-    const void* data;
-    size_t size;
-    const char* meta;
-};
-
 class Core {
 public:
     bool m_frame_drawn = false;
@@ -164,6 +179,7 @@ public:
     // --- FBO NO MONITOR ---
     void PresentFBO(SDL_Window* window);
 
+    void SwapDisc(const std::string& newIsoPath);
     static bool EnvironmentCallback(unsigned cmd, void* data);
     static void VideoRefresh(const void* data, unsigned width, unsigned height, size_t pitch);
     static void InputPoll();

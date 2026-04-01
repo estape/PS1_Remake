@@ -1,8 +1,6 @@
 ﻿#include "PS1_Remake.h"
-#include "source/PS1_Remake/Misc/include/ClassErrorHandler.h"
 
 // --- In future it will be filled from front-end ---
-const std::string CORE_PATH = "mednafen_psx_hw_libretro.dll";
 const std::string GAME_PATH = "D:/Users/Rodrigo/Emuladores/DuckStation/isos/Spider-Man 2 - Enter - Electro (USA).cue";
 
 Core ps1Core; // Core functions from Engine
@@ -27,16 +25,17 @@ extern "C" {
 PS1_Remake::PS1_Remake()
 {
     isGameRunning = false;
-    std::cout << "[SYSTEM] PS1_Remake App Inicializado." << std::endl;
+    std::cout << "[SYSTEM] PS1 Remake Inicializado." << std::endl;
 }
 
 PS1_Remake::~PS1_Remake()
 {
-    std::cout << "[SYSTEM] PS1_Remake App Encerrado." << std::endl;
+    std::cout << "[SYSTEM] PS1 Remake Encerrado." << std::endl;
 }
 
-bool PS1_Remake::StartEmulator()
+bool PS1_Remake::StartEmulator(const std::string GamePath = "isos/Spider-Man 2 - Enter - Electro (USA).cue")
 {
+	const std::string CORE_PATH = "mednafen_psx_hw_libretro.dll"; // Path to the emulator core DLL (Beetle PSX HW)
     const double TARGET_DT = 1000.0 / 60.0; // Set to 60 FPS (~16.66ms per frame)
     bool fastForward = false; // Fast-Forward mode (unlock 60 FPS Limit)
     bool running = true; // Main loop flag
@@ -49,6 +48,8 @@ bool PS1_Remake::StartEmulator()
     SDL_JoystickID* joysticks = SDL_GetJoysticks(&num_joysticks); // Listen Dualshock 4 controller
     SDL_Renderer* renderer = SDL_CreateRenderer(window, "opengl"); // Create OpenGL Renderer (connection between PS1 and GPU)
     SDL_Event event;
+
+	SetAttr::LoadGameDatabase("Database.csv"); // Load the game database with names and IDs (For future use in UI)
 
     if (!renderer) // Check if OpenGL renderer was created successfully
     {
@@ -78,7 +79,7 @@ bool PS1_Remake::StartEmulator()
 
     ps1Core.EnableHardwareRenderer(); // Start Hardware Mode
     SDL_GL_MakeCurrent(window, glContext); // Create context OpenGL before to load game
-    if (!ps1Core.LoadGame(GAME_PATH)) // Tenta carregar o jogo com a nossa função blindada
+	if (!ps1Core.LoadGame(GAME_PATH)) // Try to load the game, if fails show error message and close emulator safely
     {
         SDL_ShowSimpleMessageBox(
             SDL_MESSAGEBOX_ERROR,
@@ -90,7 +91,7 @@ bool PS1_Remake::StartEmulator()
     }
 
     // --- MAIN LOOP ---
-    ps1Core.LoadMemoryCard("D:/Users/Rodrigo/Documents/Dev/VisualStudio/Desktop/PS1_Remake/memcard1.mcr"); // Load a Memory Card file to PS1 Slot 1, will be filled by UI in future
+    ps1Core.LoadMemoryCard("mmc/memcard1.mcr"); // Load a Memory Card file to PS1 Slot 1, will be filled by UI in future
 
     // ***Running the program***
     while (running) {
@@ -108,7 +109,7 @@ bool PS1_Remake::StartEmulator()
             if (event.type == SDL_EVENT_KEY_DOWN) // Check with key on keyboard was pressed
             {
 
-                // Debug para confirmar que a tecla chegou limpa A debug to confirm that keyboard key was pressed successfully
+                // A debug to confirm that keyboard key was pressed successfully
                 std::cout << "TECLA: " << SDL_GetKeyName(event.key.key) << std::endl;
 
                 // F5: Save
@@ -179,6 +180,7 @@ void PS1_Remake::Run()
     // Temporarily we will start the emulator directly util UI is ready
     std::cout << "[SYSTEM] Iniciando fluxo principal..." << std::endl;
     StartEmulator();
+    //StartUI();
 }
 
 bool PS1_Remake::StartUI()

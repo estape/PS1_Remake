@@ -1,0 +1,86 @@
+[
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\PS1_Remake.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\PS1_Remake.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/PS1_Remake.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/PS1_Remake.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Engine\\src\\Core.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Engine\\src\\Core.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Engine/src/Core.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/Core.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Engine\\src\\SetAttr.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Engine\\src\\SetAttr.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Engine/src/SetAttr.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/SetAttr.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Engine\\src\\ControllerHandle.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Engine\\src\\ControllerHandle.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Engine/src/ControllerHandle.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/ControllerHandle.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Engine\\src\\MMC_Handle.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Engine\\src\\MMC_Handle.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Engine/src/MMC_Handle.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/MMC_Handle.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Engine\\src\\SaveStateManager.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Engine\\src\\SaveStateManager.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Engine/src/SaveStateManager.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/SaveStateManager.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Engine\\src\\CD_Management.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Engine\\src\\CD_Management.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Engine/src/CD_Management.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/CD_Management.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\Misc\\src\\ClassErrorHandler.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\Misc\\src\\ClassErrorHandler.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/Misc/src/ClassErrorHandler.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Misc/src/ClassErrorHandler.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\View\\ImGui\\imgui.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\View\\ImGui\\imgui.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/View/ImGui/imgui.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/ImGui/imgui.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\View\\ImGui\\imgui_demo.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\View\\ImGui\\imgui_demo.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/View/ImGui/imgui_demo.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/ImGui/imgui_demo.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\View\\ImGui\\imgui_draw.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\View\\ImGui\\imgui_draw.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/View/ImGui/imgui_draw.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/ImGui/imgui_draw.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\View\\ImGui\\imgui_tables.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\View\\ImGui\\imgui_tables.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/View/ImGui/imgui_tables.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/ImGui/imgui_tables.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\View\\ImGui\\imgui_widgets.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\View\\ImGui\\imgui_widgets.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/View/ImGui/imgui_widgets.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/ImGui/imgui_widgets.cpp.obj"
+},
+{
+  "directory": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build",
+  "command": "C:\\PROGRA~1\\MICROS~1\\18\\COMMUN~1\\VC\\Tools\\MSVC\\1450~1.357\\bin\\Hostx64\\x64\\cl.exe  /nologo /TP -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_image\\include -ID:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\SDL3_ttf\\include /DWIN32 /D_WINDOWS /GR /EHsc /Zi /Ob0 /Od /RTC1 -std:c++20 -MDd /FoCMakeFiles\\PS1_Remake.dir\\source\\PS1_Remake\\View\\src\\MainMenu.cpp.obj /FdCMakeFiles\\PS1_Remake.dir\\ /FS -c D:\\Users\\Rodrigo\\Documents\\Dev\\GitHub\\PS1_Remake\\source\\PS1_Remake\\View\\src\\MainMenu.cpp",
+  "file": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/source/PS1_Remake/View/src/MainMenu.cpp",
+  "output": "D:/Users/Rodrigo/Documents/Dev/GitHub/PS1_Remake/build/CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/src/MainMenu.cpp.obj"
+}
+]

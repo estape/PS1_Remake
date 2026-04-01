@@ -1,0 +1,12 @@
+# ninja log v6
+7	23	7965038187504716	clean	e13ed60dee011dc2
+57	1044	7965038189872784	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/View/src/BtnClass.cpp.obj	dcdf35cd22cd36af
+41	98	7965038189712599	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/SaveStateManager.cpp.obj	605755bdba523822
+47	105	7965038189772744	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/CD_Management.cpp.obj	70c5c968fd58560f
+52	681	7965038189822750	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Misc/src/ClassErrorHandler.cpp.obj	2cef91656669b52b
+26	1298	7965038189562927	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/SetAttr.cpp.obj	12e9076f006c3d52
+30	2066	7965038189602629	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/ControllerHandle.cpp.obj	3a79647aaf2ab841
+21	2176	7965038189512567	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/Core.cpp.obj	5770ec672414f50
+15	2431	7965038189452625	CMakeFiles/PS1_Remake.dir/PS1_Remake.cpp.obj	c4a9cc6ee973fea8
+36	3548	7965038189662577	CMakeFiles/PS1_Remake.dir/source/PS1_Remake/Engine/src/MMC_Handle.cpp.obj	91acf6d1ee84454a
+3548	4094	7965038224781849	PS1_Remake.exe	9c4a82caaee15f7f

@@ -10,6 +10,8 @@ static unsigned int g_last_width = 1024; // Default weight for FBO
 static unsigned int g_last_height = 1024; // Default height for FBO
 static struct retro_hw_render_callback g_hw_render = {};
 static SDL_Gamepad* s_activeGamepad = nullptr;
+retro_disk_control_callback g_diskControl = {};
+bool g_diskControlExtExists = false;
 
 /**
 * Post-processing filters, options 0 to 5
@@ -79,6 +81,41 @@ retro_proc_address_t Core::GetProcAddress(const char* sym) {
     return (retro_proc_address_t)SDL_GL_GetProcAddress(sym);
 }
 
+// --- Disc Swap ---
+void Core::SwapDisc(const std::string& newIsoPath) {
+    if (!g_diskControlExtExists || !g_diskControl.set_eject_state) {
+        std::cout << "[DISC SWAP] Erro: O Core nao suporta troca de discos!\n";
+        return;
+    }
+
+    std::cout << "[DISC SWAP] A iniciar a troca para: " << newIsoPath << "\n";
+
+    // 1. ABRIR A GAVETA (Ejetar o disco atual)
+    g_diskControl.set_eject_state(true);
+
+    // Estrutura que o Libretro pede para carregar o novo ficheiro
+    retro_game_info newGameInfo = { 0 };
+    newGameInfo.path = newIsoPath.c_str();
+
+    // 2. INSERIR O NOVO DISCO
+    // Substituímos a imagem no índice 0 (o disco atual) pelo novo ficheiro
+    if (g_diskControl.replace_image_index) {
+        // Adicionamos o (const retro_game_info*) para acalmar o rigor do C++
+        bool success = g_diskControl.replace_image_index(0, (const retro_game_info*)&newGameInfo);
+
+        if (!success) {
+            std::cout << "[DISC SWAP] Falha ao injetar a nova imagem na memoria do core.\n";
+            g_diskControl.set_eject_state(false); // Fecha a gaveta na mesma para não travar
+            return;
+        }
+    }
+
+    // 3. FECHAR A GAVETA
+    g_diskControl.set_eject_state(false);
+
+    std::cout << "[DISC SWAP] Troca concluida com sucesso! O jogo deve continuar agora.\n";
+}
+
 // --- Callbacks ---
 bool Core::EnvironmentCallback(unsigned cmd, void* data) {
     switch (cmd) {
@@ -139,7 +176,7 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
         }
         if (key == "beetle_psx_hw_internal_resolution" || key == "beetle_psx_internal_resolution") // Aumenta a resolu��o interna para 4x
         {
-            var->value = "4x";
+            var->value = "5x";
             return true;
         }
         if (key == "beetle_psx_hw_renderer" || key == "beetle_psx_renderer") // Ativa o renderizador hardware
@@ -162,7 +199,7 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
             var->value = "enabled";
             return true;
         }
-        if (key == "beetle_psx_hw_pgxp_mode" || key == "beetle_psx_pgxp_mode") // Fim dos polígonos tremendo e texturas derretendo!
+		if (key == "beetle_psx_hw_pgxp_mode" || key == "beetle_psx_pgxp_mode") // PGXP Mode: Fix the infamous "popping" effect in many PS1 games, where 3D models appear to "pop" or "jump" when the camera moves (Recommended to enable for better visual quality, but may cause minor performance drop in some games)
         { 
             var->value = "enabled";
             return true;
@@ -208,6 +245,12 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
     case RETRO_ENVIRONMENT_GET_LOG_INTERFACE: {
         struct retro_log_callback* cb = (struct retro_log_callback*)data;
         cb->log = CoreLog;
+        return true;
+    }
+    case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE: {
+        const retro_disk_control_callback* cb = (const retro_disk_control_callback*)data;
+        g_diskControl = *cb;
+        g_diskControlExtExists = true;
         return true;
     }
     default: return false;
