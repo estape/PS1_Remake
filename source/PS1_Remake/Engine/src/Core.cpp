@@ -1,29 +1,48 @@
 #include "../include/Core.h"
 
 // --- STATICS GLOBAL ---
-static SDL_Texture* g_gameTexture = nullptr;
-static SDL_Renderer* g_renderer = nullptr;
-static SDL_AudioStream* g_audioStream = nullptr;
+static SDL_Texture *g_gameTexture = nullptr;
+static SDL_Renderer *g_renderer = nullptr;
+static SDL_AudioStream *g_audioStream = nullptr;
 static unsigned int g_fbo = 0; // Framebuffer Object (Invisible screen that where PS1 draw frames)
 static unsigned int g_fbo_texture = 0;
-static unsigned int g_last_width = 1024; // Default weight for FBO
+static unsigned int g_last_width = 1024;  // Default weight for FBO
 static unsigned int g_last_height = 1024; // Default height for FBO
 static struct retro_hw_render_callback g_hw_render = {};
-static SDL_Gamepad* s_activeGamepad = nullptr;
+static SDL_Gamepad *s_activeGamepad = nullptr;
 retro_disk_control_callback g_diskControl = {};
 bool g_diskControlExtExists = false;
+/**
+Post-processing filter selector (0 to 5)
+**/
+int posSelector = 0;
+/**
+Internal rendering resolution selector (0 to 4)
+**/
+int resSelector = 0; // Internal rendering resolution selector (0 to 4)
 
 /**
-* Post-processing filters, options 0 to 5
-* @param 0 "nearest" - No filter (Default)
-* @param 1 "bilinear" - Basic smoothing, makes the image smoother, but may blur slightly.
-* @param 2 "3-point" - An intermediate filter that attempts to balance sharpness and smoothing (Recommended for those who want a "cleaner" look without losing detail).
-* @param 3 "xBR" - An advanced filter that smooths the image without blurring, ideal for games with many large pixels (May cause artifacts in games with many small details).
-* @param 4 "SABR" - A high-quality filter that preserves detail and smooths the image, great for games with more complex graphics.
-* @param 5 "JINC2" - The most advanced filter, offering the best possible image quality, but may be more demanding on hardware (Recommended for more powerful PCs).
-* @return The string representing the chosen post-processing filter, based on the command value. "beetle_psx_hw_filter" or "beetle_psx_filter"
-**/
-static const char* posProcessFilters[] = { "nearest", "bilinear", "3-point", "xBR", "SABR", "JINC2" };
+ * Post-processing filters, options 0 to 5
+ * @param 0 "nearest" - No filter (Default)
+ * @param 1 "bilinear" - Basic smoothing, makes the image smoother, but may blur slightly.
+ * @param 2 "3-point" - An intermediate filter that attempts to balance sharpness and smoothing (Recommended for those who want a "cleaner" look without losing detail).
+ * @param 3 "xBR" - An advanced filter that smooths the image without blurring, ideal for games with many large pixels (May cause artifacts in games with many small details).
+ * @param 4 "SABR" - A high-quality filter that preserves detail and smooths the image, great for games with more complex graphics.
+ * @param 5 "JINC2" - The most advanced filter, offering the best possible image quality, but may be more demanding on hardware (Recommended for more powerful PCs).
+ * @return The string representing the chosen post-processing filter, based on the command value. "beetle_psx_hw_filter" or "beetle_psx_filter"
+ **/
+static const char *posProcessFilters[6] = {"nearest", "bilinear", "3-point", "xBR", "SABR", "JINC2"};
+
+/**
+ * Internal rendering resolutions, options 1x to 5x
+ * @param 0 - Native (1x) PS1 resolution (320x240)
+ * @param 1 - 2 times (2x) the native resolution (640x480)
+ * @param 2 - 4 times (4x) the native resolution (1280x960)
+ * @param 3 - 8 times (8x) the native resolution (2560x1920)
+ * @param 4 - 16 times (16x) the native resolution (5120x3840)
+ * @return The string representing the chosen internal rendering resolution, based on the command value. "beetle_psx_hw_internal_resolution" or "beetle_psx_internal_resolution"
+ **/
+static const char *internalResolutions[5] = {"1x", "2x", "4x", "8x", "16x"};
 
 // Controller rumbble cache
 static uint16_t s_rumble_strong = 0;
@@ -39,21 +58,20 @@ static bool s_btnTouchpadLastState = false;
 typedef void (*global_set_port_t)(unsigned, unsigned);
 static global_set_port_t g_set_controller_func = nullptr;
 
-Core* Core::s_instance = nullptr;
+Core *Core::s_instance = nullptr;
 
 // --- Construtor ---
-Core::Core() :
-    m_coreHandle(nullptr),
-    m_hw_render_enabled(false),
-    m_retro_init(nullptr),
-    m_retro_deinit(nullptr),
-    m_retro_load_game(nullptr),
-    m_retro_run(nullptr),
-    m_retro_set_environment(nullptr),
-    m_retro_set_controller_port_device(nullptr),
-    m_retro_serialize_size(nullptr),
-    m_retro_serialize(nullptr),
-    m_retro_unserialize(nullptr)
+Core::Core() : m_coreHandle(nullptr),
+               m_hw_render_enabled(false),
+               m_retro_init(nullptr),
+               m_retro_deinit(nullptr),
+               m_retro_load_game(nullptr),
+               m_retro_run(nullptr),
+               m_retro_set_environment(nullptr),
+               m_retro_set_controller_port_device(nullptr),
+               m_retro_serialize_size(nullptr),
+               m_retro_serialize(nullptr),
+               m_retro_unserialize(nullptr)
 {
     s_instance = this;
 }
@@ -61,50 +79,86 @@ Core::Core() :
 Core::~Core() { Unload(); }
 
 // --- Log ---
-void RETRO_CALLCONV CoreLog(enum retro_log_level level, const char* fmt, ...) {
+void RETRO_CALLCONV CoreLog(enum retro_log_level level, const char *fmt, ...)
+{
     va_list args;
     va_start(args, fmt);
-    if (level == RETRO_LOG_ERROR) fprintf(stderr, "[Libretro ERRO] ");
-    else if (level == RETRO_LOG_WARN) fprintf(stdout, "[Libretro AVISO] ");
-    else fprintf(stdout, "[Libretro INFO] ");
-    vfprintf(stderr, fmt, args);
+
+    if (level == RETRO_LOG_ERROR)
+        fprintf(stdout, "[Libretro ERROR] ");
+    else if (level == RETRO_LOG_WARN)
+        fprintf(stdout, "[Libretro WARNING] ");
+    else
+        fprintf(stdout, "[Libretro] ");
+
+    vfprintf(stdout, fmt, args);
+    fflush(stdout); // Force the message to go down immediately through the Pipe!
     va_end(args);
-    fprintf(stderr, "\n");
 }
 
-uintptr_t Core::GetCurrentFramebuffer() {
+uintptr_t Core::GetCurrentFramebuffer()
+{
     return g_fbo; // Manda a GPU desenhar na nossa tela invis�vel!
 }
 
-retro_proc_address_t Core::GetProcAddress(const char* sym) {
-    // Retornamos direto, sem o SDL_Log, para n�o poluir o console com os falsos positivos do OES.
+retro_proc_address_t Core::GetProcAddress(const char *sym)
+{
     return (retro_proc_address_t)SDL_GL_GetProcAddress(sym);
 }
 
+// --- Config Int (For post-processing filters and internal rendering resolutions) ---
+void Core::CallConfigVideoSet(int posProcessValue, int internalResolutionValue)
+{
+    std::cout << "PS1LOG:posProcessValue set = " << posProcessValue << "\ninternalResolutionValue set = " << internalResolutionValue << std::endl;
+    if (posProcessValue >= 0 && posProcessValue <= 6)
+    {
+        posSelector = posProcessValue;
+    }
+    else
+    {
+        posSelector = 0;
+        std::cout << "PS1LOG: posProcessValue are invalid, must be between 0-6. Will be set 0 as fallback" << std::endl;
+    }
+
+    if (internalResolutionValue >= 0 && internalResolutionValue <= 5)
+    {
+        resSelector = internalResolutionValue;
+    }
+    else
+    {
+        resSelector = 0;
+        std::cout << "PS1LOG: internalResolutionValue are invalid, must be between 0-5. Will be set 0 as fallback" << std::endl;
+    }
+}
+
 // --- Disc Swap ---
-void Core::SwapDisc(const std::string& newIsoPath) {
-    if (!g_diskControlExtExists || !g_diskControl.set_eject_state) {
-        std::cout << "[DISC SWAP] Erro: O Core nao suporta troca de discos!\n";
+void Core::SwapDisc(const std::string &newIsoPath)
+{
+    if (!g_diskControlExtExists || !g_diskControl.set_eject_state)
+    {
+        std::cout << "PS1LOG:Erro: O Core nao suporta troca de discos!\n";
         return;
     }
 
-    std::cout << "[DISC SWAP] A iniciar a troca para: " << newIsoPath << "\n";
+    std::cout << "PS1LOG:A iniciar a troca para: " << newIsoPath << "\n";
 
     // 1. ABRIR A GAVETA (Ejetar o disco atual)
     g_diskControl.set_eject_state(true);
 
     // Estrutura que o Libretro pede para carregar o novo ficheiro
-    retro_game_info newGameInfo = { 0 };
+    retro_game_info newGameInfo = {0};
     newGameInfo.path = newIsoPath.c_str();
 
     // 2. INSERIR O NOVO DISCO
     // Substituímos a imagem no índice 0 (o disco atual) pelo novo ficheiro
-    if (g_diskControl.replace_image_index) {
+    if (g_diskControl.replace_image_index)
+    {
         // Adicionamos o (const retro_game_info*) para acalmar o rigor do C++
-        bool success = g_diskControl.replace_image_index(0, (const retro_game_info*)&newGameInfo);
+        bool success = g_diskControl.replace_image_index(0, (const retro_game_info *)&newGameInfo);
 
-        if (!success) {
-            std::cout << "[DISC SWAP] Falha ao injetar a nova imagem na memoria do core.\n";
+        if (!success)
+        {
+            std::cout << "PS1LOG:Falha ao injetar a nova imagem na memoria do core.\n";
             g_diskControl.set_eject_state(false); // Fecha a gaveta na mesma para não travar
             return;
         }
@@ -113,41 +167,55 @@ void Core::SwapDisc(const std::string& newIsoPath) {
     // 3. FECHAR A GAVETA
     g_diskControl.set_eject_state(false);
 
-    std::cout << "[DISC SWAP] Troca concluida com sucesso! O jogo deve continuar agora.\n";
+    std::cout << "PS1LOG:Troca concluida com sucesso! O jogo deve continuar agora.\n";
 }
 
 // --- Callbacks ---
-bool Core::EnvironmentCallback(unsigned cmd, void* data) {
-    switch (cmd) {
-    case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT: return true;
-    case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY: {
+bool Core::EnvironmentCallback(unsigned cmd, void *data)
+{
+    switch (cmd)
+    {
+    case RETRO_ENVIRONMENT_SET_PIXEL_FORMAT:
+        return true;
+    case RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY:
+    {
         static std::string systemPath;
-        if (systemPath.empty()) {
+        if (systemPath.empty())
+        {
             auto path = std::filesystem::current_path() / "system";
             systemPath = path.string();
-            if (systemPath.back() != '\\' && systemPath.back() != '/') systemPath += "\\";
+            if (systemPath.back() != '\\' && systemPath.back() != '/')
+                systemPath += "\\";
         }
-        *(const char**)data = systemPath.c_str();
+        *(const char **)data = systemPath.c_str();
         return true;
     }
-    case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY: {
+    // A "ghost folder" must be supplied for the DLL to prevent fallback behavior and stop it from searching for Memory Card Slot 1 in the game path.
+    case RETRO_ENVIRONMENT_GET_SAVE_DIRECTORY:
+    {
         static std::string savePath;
-        if (savePath.empty()) {
+        if (savePath.empty())
+        {
             auto path = std::filesystem::current_path() / "saves";
-            if (!std::filesystem::exists(path)) std::filesystem::create_directory(path);
+            if (!std::filesystem::exists(path))
+                std::filesystem::create_directory(path);
             savePath = path.string();
-            if (savePath.back() != '\\' && savePath.back() != '/') savePath += "\\";
+            if (savePath.back() != '\\' && savePath.back() != '/')
+                savePath += "\\";
         }
-        *(const char**)data = savePath.c_str();
+        *(const char **)data = savePath.c_str();
         return true;
     }
-    case RETRO_ENVIRONMENT_SET_HW_RENDER: {
-        if (!s_instance || !s_instance->m_hw_render_enabled) return false;
+    case RETRO_ENVIRONMENT_SET_HW_RENDER:
+    {
+        if (!s_instance || !s_instance->m_hw_render_enabled)
+            return false;
 
-        struct retro_hw_render_callback* cb = (struct retro_hw_render_callback*)data;
+        struct retro_hw_render_callback *cb = (struct retro_hw_render_callback *)data;
 
         if (cb->context_type != RETRO_HW_CONTEXT_OPENGL_CORE &&
-            cb->context_type != RETRO_HW_CONTEXT_OPENGL) {
+            cb->context_type != RETRO_HW_CONTEXT_OPENGL)
+        {
             return false;
         }
 
@@ -161,104 +229,138 @@ bool Core::EnvironmentCallback(unsigned cmd, void* data) {
         cb->get_current_framebuffer = Core::GetCurrentFramebuffer;
         cb->get_proc_address = Core::GetProcAddress;
 
-        SDL_Log("HW Render Negociado! Endereco do context_reset: %p", (void*)cb->context_reset);
+        SDL_Log("HW Render Negociado! Endereco do context_reset: %p", (void *)cb->context_reset);
         return true;
     }
-    case RETRO_ENVIRONMENT_GET_VARIABLE: {
-        struct retro_variable* var = (struct retro_variable*)data;
-        if (!var || !var->key) return false;
-        std::string key = var->key;
+    case RETRO_ENVIRONMENT_GET_VARIABLE:
+    {
+        struct retro_variable *retroVar = (struct retro_variable *)data;
+        if (!retroVar || !retroVar->key)
+            return false;
+        std::string retroKey = retroVar->key;
 
-        if (key == "beetle_psx_hw_skip_bios" || key == "beetle_psx_skip_bios") // Pula a BIOS da Sony (Fats Boot)
+        if (retroKey == "beetle_psx_hw_skip_bios") // Skip or not the PS1 BIOS intro.
         {
-            var->value = "disable";
+            retroVar->value = "enabled"; // Skip the BIOS is enabled by default.
             return true;
         }
-        if (key == "beetle_psx_hw_internal_resolution" || key == "beetle_psx_internal_resolution") // Aumenta a resolu��o interna para 4x
+        if (retroKey == "beetle_psx_hw_cd_access_method")
         {
-            var->value = "5x";
+            retroVar->value = "async";
             return true;
         }
-        if (key == "beetle_psx_hw_renderer" || key == "beetle_psx_renderer") // Ativa o renderizador hardware
+        if (retroKey == "beetle_psx_hw_internal_resolution") // Increase the internal rendering resolution.
         {
-            var->value = "hardware";
+            retroVar->value = internalResolutions[resSelector];
             return true;
         }
-        if (key == "beetle_psx_hw_filter" || key == "beetle_psx_filter") // Ativa filtros de pós-processamento
+        if (retroKey == "beetle_psx_hw_renderer") // Start in hardware mode (GPU).
         {
-            var->value = posProcessFilters[2];
+            retroVar->value = "hardware";
             return true;
         }
-        if (key == "beetle_psx_hw_crop_overscan" || key == "beetle_psx_crop_overscan") // Desliga a tesoura de overscan
+        if (retroKey == "beetle_psx_hw_filter") // Start post-processing filters, by default the "3-point" filter is recommended.
         {
-            var->value = "enabled";
+            retroVar->value = posProcessFilters[posSelector];
             return true;
         }
-        if (key == "beetle_psx_hw_image_crop" || key == "beetle_psx_image_crop") // Desliga o corte de bordas (que pode causar os famosos "polígonos tremendo" e "texturas derretendo" em alguns jogos)
+        if (retroKey == "beetle_psx_hw_depth") //OpenGL only!
         {
-            var->value = "enabled";
-            return true;
-        }
-		if (key == "beetle_psx_hw_pgxp_mode" || key == "beetle_psx_pgxp_mode") // PGXP Mode: Fix the infamous "popping" effect in many PS1 games, where 3D models appear to "pop" or "jump" when the camera moves (Recommended to enable for better visual quality, but may cause minor performance drop in some games)
-        { 
-            var->value = "enabled";
-            return true;
-        }
-        if (key == "beetle_psx_hw_pgxp_texture" || key == "beetle_psx_pgxp_texture") // Ativa o "Perspective Correct Texturing" (Texturas cravadas na parede)
-        {
-            var->value = "disabled";
-            return true;
-        }
-		if (key == "beetle_psx_hw_pgxp_vertex" || key == "beetle_psx_pgxp_vertex") // Aligned the vertices of 3D models (WARNING: Can cause distorce on textures 2D, disabled is recommended)
-        {
-            var->value = "disabled";
-            return true;
-        }
-		if (key == "beetle_psx_hw_pgxp_2d_tol" || key == "beetle_psx_pgxp_2d_tol") // Tolerance for 2D elements (Sprites and UI)
-        {
-            var->value = "disabled";
+            retroVar->value = "32bpp";
 			return true;
         }
-		if (key == "beetle_psx_hw_pgxp_tolerance" || key == "beetle_psx_pgxp_tolerance") // General tolerance for PGXP (Lower values can cause more "popping" but better accuracy, higher values can cause less "popping" but worse accuracy)
+        if (retroKey == "beetle_psx_hw_crop_overscan") // Turn off overscan cropping.
         {
-            var->value = "disabled";
+            retroVar->value = "disabled";
             return true;
         }
-		if (key == "beetle_psx_hw_dither_mode" || key == "beetle_psx_dither_mode") // Turn off dithering (because the PS1's GPU can only render in 15-bit color)
+        if (retroKey == "beetle_psx_hw_image_crop") // Turn off image cropping (which can cause the famous "shaking polygons" and "melting textures" in some games)
         {
-            var->value = "disabled";
+            retroVar->value = "disabled";
             return true;
         }
-        if (key == "beetle_psx_hw_internal_color_depth" || key == "beetle_psx_internal_color_depth") // Force render to 32-bits (Internal Color Depth) - This will make the fade-out effect smoother like a modern game, ignoring the PS1's 15-bit color limit
+        if (retroKey == "beetle_psx_hw_pgxp_mode") // PGXP Mode: Fix the infamous "popping" effect in many PS1 games, where 3D models appear to "pop" or "jump" when the camera moves (Recommended to enable for better visual quality, but may cause minor performance drop in some games)
         {
-            var->value = "32bpp";
+            retroVar->value = "memory only";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_pgxp_texture") // Turn on Perspective Correct Texturing (Which makes textures "stick" to walls and objects, instead of sliding around when the camera moves, but can cause minor graphical glitches in some games)
+        {
+            retroVar->value = "disabled";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_pgxp_vertex") // Aligned the vertices of 3D models (WARNING: Can cause distorce on textures 2D, disabled is recommended)
+        {
+            retroVar->value = "disabled";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_pgxp_2d_tol") // Tolerance for 2D elements (Sprites and UI)
+        {
+            retroVar->value = "disabled";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_pgxp_tolerance") // General tolerance for PGXP (Lower values can cause more "popping" but better accuracy, higher values can cause less "popping" but worse accuracy)
+        {
+            retroVar->value = "disabled";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_dither_mode") // Turn off dithering (because the PS1's GPU can only render in 15-bit color)
+        {
+            retroVar->value = "disabled";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_internal_color_depth") // Force render to 32-bits (Internal Color Depth) - This will make the fade-out effect smoother like a modern game, ignoring the PS1's 15-bit color limit
+        {
+            retroVar->value = "32bpp";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_use_mednafen_memcard0_method")
+        {
+            retroVar->value = "mednafen";
+            return true;
+        }
+        if (retroKey == "beetle_psx_hw_shared_memory_cards")
+        {
+            retroVar->value = "enabled";
+            return true;
+        }
+
+        if (retroKey == "beetle_psx_hw_enable_memcard1")
+        {
+            retroVar->value = "enabled";
             return true;
         }
 
         return false;
     }
-    case RETRO_ENVIRONMENT_SET_RUMBLE_INTERFACE: {
-        struct retro_rumble_interface* ri = (struct retro_rumble_interface*)data;
+    case RETRO_ENVIRONMENT_SET_RUMBLE_INTERFACE:
+    {
+        struct retro_rumble_interface *ri = (struct retro_rumble_interface *)data;
         ri->set_rumble_state = Core::SetRumbleState;
         return true;
     }
-    case RETRO_ENVIRONMENT_GET_LOG_INTERFACE: {
-        struct retro_log_callback* cb = (struct retro_log_callback*)data;
+    case RETRO_ENVIRONMENT_GET_LOG_INTERFACE:
+    {
+        struct retro_log_callback *cb = (struct retro_log_callback *)data;
         cb->log = CoreLog;
         return true;
     }
-    case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE: {
-        const retro_disk_control_callback* cb = (const retro_disk_control_callback*)data;
+    case RETRO_ENVIRONMENT_SET_DISK_CONTROL_INTERFACE:
+    {
+        const retro_disk_control_callback *cb = (const retro_disk_control_callback *)data;
         g_diskControl = *cb;
         g_diskControlExtExists = true;
         return true;
     }
-    default: return false;
+    default:
+        return false;
     }
 }
 
-void Core::PresentFBO(SDL_Window* window) {
-    if (!g_fbo) return;
+void Core::PresentFBO(SDL_Window *window)
+{
+    if (!g_fbo)
+        return;
 
     typedef void (*glBindFramebuffer_t)(unsigned int, unsigned int);
     typedef void (*glBlitFramebuffer_t)(int, int, int, int, int, int, int, int, unsigned int, unsigned int);
@@ -272,32 +374,36 @@ void Core::PresentFBO(SDL_Window* window) {
     auto my_glClear = (glClear_t)SDL_GL_GetProcAddress("glClear");
     auto my_glViewport = (glViewport_t)SDL_GL_GetProcAddress("glViewport");
 
-    if (!my_glBlitFramebuffer) return;
+    if (!my_glBlitFramebuffer)
+        return;
 
     int winW, winH;
-    SDL_GetWindowSize(window, &winW, &winH);
+    SDL_GetWindowSizeInPixels(window, &winW, &winH);
 
-	// Set and lock the aspect ratio to 4:3, simulating a CRT TV and handling dynamic resolutions of the PS1
+    // Set and lock the aspect ratio to 4:3, simulating a CRT TV and handling dynamic resolutions of the PS1
     float targetAspect = 4.0f / 3.0f;
     float windowAspect = (float)winW / (float)winH;
 
     int viewW = winW, viewH = winH;
     int viewX = 0, viewY = 0;
 
-    if (windowAspect > targetAspect) {
+    if (windowAspect > targetAspect)
+    {
         viewW = (int)(winH * targetAspect);
         viewX = (winW - viewW) / 2;
     }
-    else {
+    else
+    {
         viewH = (int)(winW / targetAspect);
         viewY = (winH - viewH) / 2;
     }
 
-	// Set the focus back to the user's window (ID 0)
+    // Set the focus back to the user's window (ID 0)
     my_glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// Draw black background (create clean side bars)
-    if (my_glClearColor) {
+    // Draw black background (create clean side bars)
+    if (my_glClearColor)
+    {
         my_glViewport(0, 0, winW, winH);
         my_glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         my_glClear(GL_COLOR_BUFFER_BIT);
@@ -305,29 +411,33 @@ void Core::PresentFBO(SDL_Window* window) {
 
     // O Copia-e-Cola M�gico do OpenGL!
     // Pega a imagem da Tela Invis�vel e "estica" perfeitamente no centro do monitor
-    my_glBindFramebuffer(0x8CA8, g_fbo); // GL_READ_FRAMEBUFFER 
+    my_glBindFramebuffer(0x8CA8, g_fbo); // GL_READ_FRAMEBUFFER
     my_glBindFramebuffer(0x8CA9, 0);     // GL_DRAW_FRAMEBUFFER
 
     my_glBlitFramebuffer(0, 0, g_last_width, g_last_height,
-        viewX, viewY, viewX + viewW, viewY + viewH,
-        GL_COLOR_BUFFER_BIT, GL_LINEAR);
+                         viewX, viewY, viewX + viewW, viewY + viewH,
+                         GL_COLOR_BUFFER_BIT, GL_LINEAR);
 
     // Muda o foco novamente para o FBO para renderizar o pr�ximo frame
     my_glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
 }
 
-void Core::VideoRefresh(const void* data, unsigned width, unsigned height, size_t pitch) {
-    if (data == RETRO_HW_FRAME_BUFFER_VALID) {
-        g_last_width = width; // Largura exato do frame desenhado pelo PS1
+void Core::VideoRefresh(const void *data, unsigned width, unsigned height, size_t pitch)
+{
+    if (data == RETRO_HW_FRAME_BUFFER_VALID)
+    {
+        g_last_width = width;   // Largura exato do frame desenhado pelo PS1
         g_last_height = height; // Altura exato do frame desenhado pelo PS1
 
-        if (s_instance) s_instance->m_frame_drawn = true;
+        if (s_instance)
+            s_instance->m_frame_drawn = true;
         return;
     }
 
-    if (!data || !g_gameTexture) return;
+    if (!data || !g_gameTexture)
+        return;
 
-    SDL_Rect updateRect = { 0, 0, (int)width, (int)height };
+    SDL_Rect updateRect = {0, 0, (int)width, (int)height};
     SDL_UpdateTexture(g_gameTexture, &updateRect, data, (int)pitch);
 
     int winW, winH;
@@ -337,11 +447,13 @@ void Core::VideoRefresh(const void* data, unsigned width, unsigned height, size_
     float windowAspect = (float)winW / (float)winH;
     SDL_FRect destRect;
 
-    if (windowAspect > targetAspect) {
+    if (windowAspect > targetAspect)
+    {
         destRect.h = (float)winH;
         destRect.w = destRect.h * targetAspect;
     }
-    else {
+    else
+    {
         destRect.w = (float)winW;
         destRect.h = destRect.w / targetAspect;
     }
@@ -350,17 +462,21 @@ void Core::VideoRefresh(const void* data, unsigned width, unsigned height, size_
 
     SDL_SetRenderDrawColor(g_renderer, 0, 0, 0, 255);
     SDL_RenderClear(g_renderer);
-    SDL_FRect srcRect = { 0, 0, (float)width, (float)height };
+    SDL_FRect srcRect = {0, 0, (float)width, (float)height};
     SDL_RenderTexture(g_renderer, g_gameTexture, &srcRect, &destRect);
     SDL_RenderPresent(g_renderer);
 }
 
-size_t RETRO_CALLCONV Core::AudioSampleBatch(const int16_t* data, size_t frames) {
-    if (!data || frames == 0) return 0;
-    if (g_audioStream) {
+size_t RETRO_CALLCONV Core::AudioSampleBatch(const int16_t *data, size_t frames)
+{
+    if (!data || frames == 0)
+        return 0;
+    if (g_audioStream)
+    {
         int queuedBytes = SDL_GetAudioStreamQueued(g_audioStream);
         const int MAX_LATENCY_BYTES = (int)(176400 * 0.06);
-        if (queuedBytes < MAX_LATENCY_BYTES) {
+        if (queuedBytes < MAX_LATENCY_BYTES)
+        {
             int bytes = static_cast<int>(frames * 4);
             SDL_PutAudioStreamData(g_audioStream, data, bytes);
         }
@@ -368,17 +484,21 @@ size_t RETRO_CALLCONV Core::AudioSampleBatch(const int16_t* data, size_t frames)
     return frames;
 }
 
-void Core::InputPoll() {
+void Core::InputPoll()
+{
     SDL_PumpEvents();
 
-    if (!s_activeGamepad) {
+    if (!s_activeGamepad)
+    {
         int count = 0;
-        SDL_JoystickID* joys = SDL_GetGamepads(&count);
-        if (count > 0) {
+        SDL_JoystickID *joys = SDL_GetGamepads(&count);
+        if (count > 0)
+        {
             s_activeGamepad = SDL_OpenGamepad(joys[0]);
             SDL_Log("InputPoll: Controle conectado: %s", SDL_GetGamepadName(s_activeGamepad));
         }
-        else {
+        else
+        {
             return;
         }
     }
@@ -387,15 +507,17 @@ void Core::InputPoll() {
     bool isPressed = SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_TOUCHPAD);
 
     // Alterna entre os modos digital e anal�gico apenas quando aperta (Borda de subida)
-    if (isPressed && !s_btnTouchpadLastState) {
+    if (isPressed && !s_btnTouchpadLastState)
+    {
 
         // Inverte: 1 -> 5 ou 5 -> 1
         s_currentDeviceId = (s_currentDeviceId == RETRO_DEVICE_PS_DIGITAL)
-            ? RETRO_DEVICE_PS_DUALSHOCK
-            : RETRO_DEVICE_PS_DIGITAL;
+                                ? RETRO_DEVICE_PS_DUALSHOCK
+                                : RETRO_DEVICE_PS_DIGITAL;
 
         // Se a fun��o da DLL foi carregada com sucesso, usamos ela!
-        if (g_set_controller_func) {
+        if (g_set_controller_func)
+        {
             g_set_controller_func(0, s_currentDeviceId);
 
             if (s_currentDeviceId == RETRO_DEVICE_PS_DUALSHOCK)
@@ -407,19 +529,22 @@ void Core::InputPoll() {
     s_btnTouchpadLastState = isPressed;
 }
 
-void Core::ToggleRumble() {
+void Core::ToggleRumble()
+{
     s_rumble_enabled = !s_rumble_enabled; // Inverte o estado (Se era true, vira false e vice-versa)
 
     // Mostra no console para voc� saber se ligou ou desligou
     std::cout << "[CONTROLE] Vibracao: " << (s_rumble_enabled ? "LIGADA" : "DESLIGADA") << std::endl;
 }
 
-bool Core::SetRumbleState(unsigned port, enum retro_rumble_effect effect, uint16_t strength) {
-    if (port != 0 || !s_activeGamepad) return false; // S� vibra o Player 1
+bool Core::SetRumbleState(unsigned port, enum retro_rumble_effect effect, uint16_t strength)
+{
+    if (port != 0 || !s_activeGamepad)
+        return false; // S� vibra o Player 1
 
     if (!s_rumble_enabled)
     {
-		SDL_RumbleGamepad(s_activeGamepad, 0, 0, 0); // Desliga a vibra��o imediatamente
+        SDL_RumbleGamepad(s_activeGamepad, 0, 0, 0); // Desliga a vibra��o imediatamente
         return true;
     }
     // 1. Atualiza o cache do motor correspondente
@@ -433,36 +558,42 @@ bool Core::SetRumbleState(unsigned port, enum retro_rumble_effect effect, uint16
     }
 
     /*
-    * 2. Dispara a vibra��o na SDL3!
-    * Enviamos a for�a dos dois motores. A dura��o � "infinita" (0xFFFF) 
-    * porque o pr�prio emulador vai mandar strength = 0 quando for a hora de parar.
-    */ 
+     * 2. Dispara a vibra��o na SDL3!
+     * Enviamos a for�a dos dois motores. A dura��o � "infinita" (0xFFFF)
+     * porque o pr�prio emulador vai mandar strength = 0 quando for a hora de parar.
+     */
     SDL_RumbleGamepad(s_activeGamepad, s_rumble_strong, s_rumble_weak, 0xFFFF);
 
     return true;
 }
 
-int16_t Core::InputState(unsigned port, unsigned device, unsigned index, unsigned id) {
-    if (port != 0 || !s_activeGamepad) return 0;
+int16_t Core::InputState(unsigned port, unsigned device, unsigned index, unsigned id)
+{
+    if (port != 0 || !s_activeGamepad)
+        return 0;
 
-    if (device == RETRO_DEVICE_ANALOG || device == RETRO_DEVICE_PS_DUALSHOCK) {
-        if (s_currentDeviceId != RETRO_DEVICE_PS_DUALSHOCK) return 0;
+    if (device == RETRO_DEVICE_ANALOG || device == RETRO_DEVICE_PS_DUALSHOCK)
+    {
+        if (s_currentDeviceId != RETRO_DEVICE_PS_DUALSHOCK)
+            return 0;
 
         SDL_GamepadAxis targetAxis;
 
         // 1. SELECIONA O EIXO E A CONFIGURA��O
         float deadzone, saturation;
 
-        if (index == 0) {
+        if (index == 0)
+        {
             // Stick ESQUERDO (Movimento)
             targetAxis = (id == 0) ? SDL_GAMEPAD_AXIS_LEFTX : SDL_GAMEPAD_AXIS_LEFTY;
             deadzone = 4000.0f;
             saturation = 24000.0f;
         }
-        else {
+        else
+        {
             // Stick DIREITO (Mira)
             targetAxis = (id == 0) ? SDL_GAMEPAD_AXIS_RIGHTX : SDL_GAMEPAD_AXIS_RIGHTY;
-            deadzone = 7000.0f;   // Deadzone maior pra evitar drift
+            deadzone = 7000.0f; // Deadzone maior pra evitar drift
             saturation = 26000.0f;
         }
 
@@ -474,47 +605,69 @@ int16_t Core::InputState(unsigned port, unsigned device, unsigned index, unsigne
         float absVal = std::abs(val);
 
         // 2. L�GICA DE DEADZONE SIMPLES (Corta o centro)
-        if (absVal < deadzone) return 0;
+        if (absVal < deadzone)
+            return 0;
 
         /* 3. L�GICA DE SATURA��O (Agressiva)
         Se passar da satura��o, for�a o valor m�ximo permitido pelo PS1 (32700)
         Mantendo o sinal original (positivo ou negativo) */
-        if (absVal >= saturation) {
+        if (absVal >= saturation)
+        {
             return (val > 0) ? 32700 : -32700;
         }
 
-         /* 4. INTERPOLA��O LINEAR(Para o meio do caminho)
-         Se est� entre a deadzone e a satura��o, escala suavemente
-         Ex: (Valor - Dead) / (Sat - Dead) * Max */
+        /* 4. INTERPOLA��O LINEAR(Para o meio do caminho)
+        Se est� entre a deadzone e a satura��o, escala suavemente
+        Ex: (Valor - Dead) / (Sat - Dead) * Max */
         float normalized = (absVal - deadzone) / (saturation - deadzone);
         float finalVal = normalized * 32700.0f;
 
         // Devolve o sinal
-        if (val < 0) finalVal = -finalVal;
+        if (val < 0)
+            finalVal = -finalVal;
 
         return (int16_t)finalVal;
     }
 
     // --- BOT�ES (Mantenha igual) ---
-    if (device == RETRO_DEVICE_JOYPAD) {
-        switch (id) {
-        case RETRO_DEVICE_ID_JOYPAD_B:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_SOUTH);
-        case RETRO_DEVICE_ID_JOYPAD_A:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_EAST);
-        case RETRO_DEVICE_ID_JOYPAD_Y:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_WEST);
-        case RETRO_DEVICE_ID_JOYPAD_X:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_NORTH);
-        case RETRO_DEVICE_ID_JOYPAD_UP:     return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
-        case RETRO_DEVICE_ID_JOYPAD_DOWN:   return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
-        case RETRO_DEVICE_ID_JOYPAD_LEFT:   return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
-        case RETRO_DEVICE_ID_JOYPAD_RIGHT:  return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
-        case RETRO_DEVICE_ID_JOYPAD_L:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
-        case RETRO_DEVICE_ID_JOYPAD_R:      return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
-        case RETRO_DEVICE_ID_JOYPAD_L2:     return SDL_GetGamepadAxis(s_activeGamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 10000;
-        case RETRO_DEVICE_ID_JOYPAD_R2:     return SDL_GetGamepadAxis(s_activeGamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
-        case RETRO_DEVICE_ID_JOYPAD_START:  return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_START);
-        case RETRO_DEVICE_ID_JOYPAD_SELECT: return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_BACK);
-        case RETRO_DEVICE_ID_JOYPAD_L3:     return (s_currentDeviceId == RETRO_DEVICE_PS_DUALSHOCK) ? SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK) : 0;
-        case RETRO_DEVICE_ID_JOYPAD_R3:     return (s_currentDeviceId == RETRO_DEVICE_PS_DUALSHOCK) ? SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK) : 0;
-        default: return 0;
+    if (device == RETRO_DEVICE_JOYPAD)
+    {
+        switch (id)
+        {
+        case RETRO_DEVICE_ID_JOYPAD_B:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_SOUTH);
+        case RETRO_DEVICE_ID_JOYPAD_A:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_EAST);
+        case RETRO_DEVICE_ID_JOYPAD_Y:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_WEST);
+        case RETRO_DEVICE_ID_JOYPAD_X:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_NORTH);
+        case RETRO_DEVICE_ID_JOYPAD_UP:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_UP);
+        case RETRO_DEVICE_ID_JOYPAD_DOWN:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_DOWN);
+        case RETRO_DEVICE_ID_JOYPAD_LEFT:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_LEFT);
+        case RETRO_DEVICE_ID_JOYPAD_RIGHT:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_DPAD_RIGHT);
+        case RETRO_DEVICE_ID_JOYPAD_L:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER);
+        case RETRO_DEVICE_ID_JOYPAD_R:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER);
+        case RETRO_DEVICE_ID_JOYPAD_L2:
+            return SDL_GetGamepadAxis(s_activeGamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 10000;
+        case RETRO_DEVICE_ID_JOYPAD_R2:
+            return SDL_GetGamepadAxis(s_activeGamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 10000;
+        case RETRO_DEVICE_ID_JOYPAD_START:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_START);
+        case RETRO_DEVICE_ID_JOYPAD_SELECT:
+            return SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_BACK);
+        case RETRO_DEVICE_ID_JOYPAD_L3:
+            return (s_currentDeviceId == RETRO_DEVICE_PS_DUALSHOCK) ? SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_LEFT_STICK) : 0;
+        case RETRO_DEVICE_ID_JOYPAD_R3:
+            return (s_currentDeviceId == RETRO_DEVICE_PS_DUALSHOCK) ? SDL_GetGamepadButton(s_activeGamepad, SDL_GAMEPAD_BUTTON_RIGHT_STICK) : 0;
+        default:
+            return 0;
         }
     }
     return 0;
@@ -524,16 +677,19 @@ void Core::OnContextReset() { SDL_Log("Contexto OpenGL Resetado!"); }
 void Core::OnContextDestroy() { SDL_Log("Contexto OpenGL Destruido!"); }
 
 // --- CARREGAMENTO DO CORE ---
-bool Core::LoadCore(const std::string& dllPath) {
-    m_coreHandle = (void*)SDL_LoadObject(dllPath.c_str());
-    if (!m_coreHandle) {
+bool Core::LoadCore(const std::string &dllPath)
+{
+    m_coreHandle = (void *)SDL_LoadObject(dllPath.c_str());
+    if (!m_coreHandle)
+    {
         SDL_Log("ERRO DLL: %s", SDL_GetError());
         return false;
     }
 
-    auto load_sym = [&](const char* name) {
-        return SDL_LoadFunction((SDL_SharedObject*)m_coreHandle, name);
-        };
+    auto load_sym = [&](const char *name)
+    {
+        return SDL_LoadFunction((SDL_SharedObject *)m_coreHandle, name);
+    };
 
     m_retro_init = (retro_init_t)load_sym("retro_init");
     m_retro_deinit = (retro_deinit_t)load_sym("retro_deinit");
@@ -548,19 +704,23 @@ bool Core::LoadCore(const std::string& dllPath) {
     m_retro_get_memory_data = (retro_get_memory_data_t)load_sym("retro_get_memory_data");
     m_retro_get_memory_size = (retro_get_memory_size_t)load_sym("retro_get_memory_size");
 
-    if (!m_retro_get_memory_data || !m_retro_get_memory_size) {
+    if (!m_retro_get_memory_data || !m_retro_get_memory_size)
+    {
         SDL_Log("AVISO: Funcoes de Memory Card (SRAM) nao encontradas na DLL.");
     }
 
     // Log para confirmar
-    if (m_retro_serialize_size) {
+    if (m_retro_serialize_size)
+    {
         SDL_Log("Funcoes de Save State carregadas com sucesso!");
     }
-    else {
+    else
+    {
         SDL_Log("ERRO: Funcoes de Save State NAO encontradas na DLL.");
     }
 
-    if (!m_retro_serialize_size || !m_retro_serialize || !m_retro_unserialize) {
+    if (!m_retro_serialize_size || !m_retro_serialize || !m_retro_unserialize)
+    {
         SDL_Log("AVISO: Funcoes de Save State nao encontradas na DLL. F5/F9 nao funcionarao.");
     }
 
@@ -576,7 +736,8 @@ bool Core::LoadCore(const std::string& dllPath) {
     auto set_input = (retro_set_input_poll_t)load_sym("retro_set_input_poll");
     auto set_input_state = (retro_set_input_state_t)load_sym("retro_set_input_state");
 
-    if (!m_retro_init || !m_retro_set_environment || !set_video || !set_audio) {
+    if (!m_retro_init || !m_retro_set_environment || !set_video || !set_audio)
+    {
         SDL_Log("ERRO: Funcoes vitais ou Setters nao encontrados na DLL.");
         return false;
     }
@@ -587,9 +748,10 @@ bool Core::LoadCore(const std::string& dllPath) {
     set_input(Core::InputPoll);
     set_input_state(Core::InputState);
 
-    SDL_AudioSpec spec = { SDL_AUDIO_S16, 2, 44100 };
+    SDL_AudioSpec spec = {SDL_AUDIO_S16, 2, 44100};
     g_audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
-    if (g_audioStream) SDL_ResumeAudioDevice(SDL_GetAudioStreamDevice(g_audioStream));
+    if (g_audioStream)
+        SDL_ResumeAudioDevice(SDL_GetAudioStreamDevice(g_audioStream));
 
     m_retro_init();
     return true;
@@ -597,28 +759,32 @@ bool Core::LoadCore(const std::string& dllPath) {
 
 void Core::EnableHardwareRenderer() { m_hw_render_enabled = true; }
 
-bool Core::LoadGame(const std::string& gamePath) {
-    if (!m_retro_load_game) return false;
-    struct retro_game_info info = { 0 };
+bool Core::LoadGame(const std::string &gamePath)
+{
+    if (!m_retro_load_game)
+        return false;
+    struct retro_game_info info = {0};
     info.path = gamePath.c_str();
 
     // Load .CUE (Game) file first, while is loading, the DLL will populate our GPU pointers in the background.
-    if (m_retro_load_game(&info)) {
+    if (m_retro_load_game(&info))
+    {
 
-        if (m_retro_set_controller_port_device) {
+        if (m_retro_set_controller_port_device)
+        {
             m_retro_set_controller_port_device(0, RETRO_DEVICE_PS_DIGITAL);
         }
 
         // 2. Start the GPU
-        if (m_hw_render_enabled) // <-- 0x00007FF851D4650E (mednafen_psx_hw_libretro.dll) if file path aren't fonded. A workaround will be necessary for this.
+        if (m_hw_render_enabled) // <--  this fix error 0x00007FF851D4650E (mednafen_psx_hw_libretro.dll not found it).
         {
 
             // --- Create the invisible screen (FBO) ---
-            typedef void (*glGenFramebuffers_t)(int, unsigned int*);
+            typedef void (*glGenFramebuffers_t)(int, unsigned int *);
             typedef void (*glBindFramebuffer_t)(unsigned int, unsigned int);
-            typedef void (*glGenTextures_t)(int, unsigned int*);
+            typedef void (*glGenTextures_t)(int, unsigned int *);
             typedef void (*glBindTexture_t)(unsigned int, unsigned int);
-            typedef void (*glTexImage2D_t)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*);
+            typedef void (*glTexImage2D_t)(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void *);
             typedef void (*glTexParameteri_t)(unsigned int, unsigned int, int);
             typedef void (*glFramebufferTexture2D_t)(unsigned int, unsigned int, unsigned int, unsigned int, int);
 
@@ -630,8 +796,9 @@ bool Core::LoadGame(const std::string& gamePath) {
             auto my_glTexParameteri = (glTexParameteri_t)SDL_GL_GetProcAddress("glTexParameteri");
             auto my_glFramebufferTexture2D = (glFramebufferTexture2D_t)SDL_GL_GetProcAddress("glFramebufferTexture2D");
 
-            if (my_glGenFramebuffers && !g_fbo) {
-                typedef void (*glGenRenderbuffers_t)(int, unsigned int*);
+            if (my_glGenFramebuffers && !g_fbo)
+            {
+                typedef void (*glGenRenderbuffers_t)(int, unsigned int *);
                 typedef void (*glBindRenderbuffer_t)(unsigned int, unsigned int);
                 typedef void (*glRenderbufferStorage_t)(unsigned int, unsigned int, int, int);
                 typedef void (*glFramebufferRenderbuffer_t)(unsigned int, unsigned int, unsigned int, unsigned int);
@@ -641,11 +808,11 @@ bool Core::LoadGame(const std::string& gamePath) {
                 auto my_glRenderbufferStorage = (glRenderbufferStorage_t)SDL_GL_GetProcAddress("glRenderbufferStorage");
                 auto my_glFramebufferRenderbuffer = (glFramebufferRenderbuffer_t)SDL_GL_GetProcAddress("glFramebufferRenderbuffer");
 
-				// Create the base of invisible screen
+                // Create the base of invisible screen
                 my_glGenFramebuffers(1, &g_fbo);
                 my_glBindFramebuffer(GL_FRAMEBUFFER, g_fbo);
 
-				// Color Texture (Tint for the PS1's framebuffer)
+                // Color Texture (Tint for the PS1's framebuffer)
                 my_glGenTextures(1, &g_fbo_texture);
                 my_glBindTexture(GL_TEXTURE_2D, g_fbo_texture);
                 my_glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 4096, 4096, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
@@ -654,12 +821,13 @@ bool Core::LoadGame(const std::string& gamePath) {
                 my_glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, g_fbo_texture, 0);
 
                 // --- Depth/Stencil Renderbuffer ---
-                if (my_glGenRenderbuffers) {
+                if (my_glGenRenderbuffers)
+                {
                     unsigned int rbo;
                     my_glGenRenderbuffers(1, &rbo);
-                    my_glBindRenderbuffer(0x8D41, rbo); // 0x8D41 = GL_RENDERBUFFER
+                    my_glBindRenderbuffer(0x8D41, rbo);                   // 0x8D41 = GL_RENDERBUFFER
                     my_glRenderbufferStorage(0x8D41, 0x88F0, 4096, 4096); // 0x88F0 = GL_DEPTH24_STENCIL8
-                    //my_glRenderbufferStorage(0x8D41, 0x8CAD, 4096, 4096); // 0x8CAD = GL_DEPTH32F_STENCIL8
+                    // my_glRenderbufferStorage(0x8D41, 0x8CAD, 4096, 4096); // 0x8CAD = GL_DEPTH32F_STENCIL8
                     my_glFramebufferRenderbuffer(GL_FRAMEBUFFER, 0x821A, 0x8D41, rbo); // 0x821A = GL_DEPTH_STENCIL_ATTACHMENT
                 }
 
@@ -669,11 +837,13 @@ bool Core::LoadGame(const std::string& gamePath) {
 
             auto safe_context_reset = m_hw_render_callback.context_reset;
 
-            if (safe_context_reset) {
+            if (safe_context_reset)
+            {
                 safe_context_reset();
                 SDL_Log("GPU Assumiu o controle! OpenGL Resetado com sucesso.");
             }
-            else {
+            else
+            {
                 SDL_Log("ERRO CRITICO: context_reset NULO apos o LoadGame! A GPU falhou.");
             }
         }
@@ -682,25 +852,34 @@ bool Core::LoadGame(const std::string& gamePath) {
     return false;
 }
 
-void Core::RunFrame() { if (m_retro_run) m_retro_run(); }
+void Core::RunFrame()
+{
+    if (m_retro_run)
+        m_retro_run();
+}
 
-void Core::Unload() {
-	// FIRST: Turn off the GPU (While the DLL still exists!)
-    if (m_hw_render_enabled) {
+void Core::Unload()
+{
+    // FIRST: Turn off the GPU (While the DLL still exists!)
+    if (m_hw_render_enabled)
+    {
         auto safe_context_destroy = m_hw_render_callback.context_destroy;
-        if (safe_context_destroy) {
+        if (safe_context_destroy)
+        {
             safe_context_destroy();
             SDL_Log("Contexto OpenGL destruido com seguranca.");
         }
     }
 
-    if (g_audioStream) {
+    if (g_audioStream)
+    {
         SDL_DestroyAudioStream(g_audioStream);
         g_audioStream = nullptr;
     }
 
     // SECOUND: Turn off the emulator system
-    if (m_retro_deinit) {
+    if (m_retro_deinit)
+    {
         m_retro_deinit();
     }
 
@@ -708,21 +887,25 @@ void Core::Unload() {
     m_coreHandle = nullptr;
 }
 
-void Core::InitVideo(SDL_Renderer* renderer) {
+void Core::InitVideo(SDL_Renderer *renderer)
+{
     g_renderer = renderer;
     g_gameTexture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, 1024, 512);
 }
 
-bool Core::SaveState(const std::string& filepath) {
+bool Core::SaveState(const std::string &filepath)
+{
     // 1. O PRINT VEM PRIMEIRO (Antes de qualquer verificação)
     std::cout << "[DEBUG] >>> TENTANDO SALVAR O ESTADO <<<" << std::endl;
 
     // 2. Agora verificamos se as funções existem
-    if (m_retro_serialize_size == nullptr) {
+    if (m_retro_serialize_size == nullptr)
+    {
         std::cout << "[ERRO] Ponteiro 'serialize_size' esta NULO!" << std::endl;
         return false;
     }
-    if (m_retro_serialize == nullptr) {
+    if (m_retro_serialize == nullptr)
+    {
         std::cout << "[ERRO] Ponteiro 'serialize' esta NULO!" << std::endl;
         return false;
     }
@@ -731,34 +914,40 @@ bool Core::SaveState(const std::string& filepath) {
     size_t stateSize = m_retro_serialize_size();
     std::cout << "[DEBUG] Tamanho necessario: " << stateSize << " bytes." << std::endl;
 
-    if (stateSize == 0) return false;
+    if (stateSize == 0)
+        return false;
 
     std::vector<uint8_t> stateBuffer(stateSize);
 
-    if (!m_retro_serialize(stateBuffer.data(), stateSize)) {
+    if (!m_retro_serialize(stateBuffer.data(), stateSize))
+    {
         std::cout << "[ERRO] Core falhou ao serializar." << std::endl;
         return false;
     }
 
     std::ofstream outFile(filepath, std::ios::binary);
-    if (!outFile.is_open()) {
+    if (!outFile.is_open())
+    {
         std::cout << "[ERRO] Nao criou o arquivo: " << filepath << std::endl;
         return false;
     }
 
-    outFile.write((const char*)stateBuffer.data(), stateSize);
+    outFile.write((const char *)stateBuffer.data(), stateSize);
     outFile.close();
 
     std::cout << "[SUCESSO] SALVO COM SUCESSO EM: " << filepath << std::endl;
     return true;
 }
 
-bool Core::LoadState(const std::string& filepath) {
-    if (!m_retro_serialize_size || !m_retro_unserialize) return false;
+bool Core::LoadState(const std::string &filepath)
+{
+    if (!m_retro_serialize_size || !m_retro_unserialize)
+        return false;
 
     // 1. Abre o arquivo
     std::ifstream inFile(filepath, std::ios::binary);
-    if (!inFile.is_open()) {
+    if (!inFile.is_open())
+    {
         SDL_Log("ERRO: Arquivo de save nao encontrado: %s", filepath.c_str());
         return false;
     }
@@ -770,17 +959,19 @@ bool Core::LoadState(const std::string& filepath) {
 
     // 3. Verifica se bate com o que o Core espera (Seguran�a b�sica)
     size_t expectedSize = m_retro_serialize_size();
-    if (fileSize != expectedSize) {
+    if (fileSize != expectedSize)
+    {
         SDL_Log("AVISO: Tamanho do Save (%zu) diferente do esperado pelo Core (%zu). Tentando mesmo assim...", fileSize, expectedSize);
     }
 
-    // 4. L� o arquivo para a mem�ria
+    // 4. Lê o arquivo para a memória
     std::vector<uint8_t> stateBuffer(fileSize);
-    inFile.read((char*)stateBuffer.data(), fileSize);
+    inFile.read((char *)stateBuffer.data(), fileSize);
     inFile.close();
 
     // 5. Manda o Core engolir os dados
-    if (!m_retro_unserialize(stateBuffer.data(), fileSize)) {
+    if (!m_retro_unserialize(stateBuffer.data(), fileSize))
+    {
         SDL_Log("ERRO: Core rejeitou o Save State (Dados corrompidos ou versao diferente).");
         return false;
     }
@@ -789,51 +980,64 @@ bool Core::LoadState(const std::string& filepath) {
     return true;
 }
 
-bool Core::LoadMemoryCard(const std::string& filepath) {
-    if (!m_retro_get_memory_data || !m_retro_get_memory_size) return false;
+//void Core::LoadMemoryCard(const std::string &filepath)
+//{
+//    if (m_retro_get_memory_data && m_retro_get_memory_size)
+//    {
+//        size_t mcSize = m_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+//        void* mcData = m_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+//
+//        if (mcSize == 0 || mcData == nullptr)
+//        {
+//            std::cout << "PS1LOG:[WARNING] Core didn't activated Memory Card interface." << std::endl;
+//            return;
+//        }
+//
+//        std::ifstream inFile(filepath, std::ios::binary);
+//        if (!inFile.is_open())
+//        {
+//            std::cout << "PS1LOG:[MEMORY CARD] File not found it!: " << filepath << std::endl;
+//            return;
+//        }
+//
+//        inFile.read((char*)mcData, mcSize);
+//        inFile.close();
+//
+//        std::cout << "PS1LOG:[MEMORY CARD] Load successful: " << filepath << " (" << mcSize << " bytes)." << std::endl;
+//    }
+//    else
+//    {
+//        std::cout << "PS1LOG:[WARNING] Memory Card functions are disabled. Skipping load." << std::endl;
+//    }
+//}
 
-    // Pede ao Core o tamanho do Memory Card e o ponteiro para a mem�ria
-    size_t mcSize = m_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-    void* mcData = m_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-
-    // O Beetle PSX normalmente aloca 128KB (131072 bytes) aqui
-    if (mcSize == 0 || mcData == nullptr) {
-        std::cout << "[AVISO] O Core nao ativou a interface de Memory Card." << std::endl;
-        return false;
-    }
-
-    std::ifstream inFile(filepath, std::ios::binary);
-    if (!inFile.is_open()) {
-        std::cout << "[MEMORY CARD] Arquivo nao encontrado: " << filepath << " (O Core criara um novo vazio)." << std::endl;
-        return false;
-    }
-
-    // Despeja os 128KB do disco direto na RAM do emulador
-    inFile.read((char*)mcData, mcSize);
-    inFile.close();
-
-    std::cout << "[MEMORY CARD] Carregado com sucesso: " << filepath << " (" << mcSize << " bytes)." << std::endl;
-    return true;
-}
-
-bool Core::SaveMemoryCard(const std::string& filepath) {
-    if (!m_retro_get_memory_data || !m_retro_get_memory_size) return false;
-
-    size_t mcSize = m_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-    void* mcData = m_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-
-    if (mcSize == 0 || mcData == nullptr) return false;
-
-    std::ofstream outFile(filepath, std::ios::binary);
-    if (!outFile.is_open()) {
-        std::cout << "[ERRO] Nao foi possivel gravar o Memory Card em: " << filepath << std::endl;
-        return false;
-    }
-
-    // Pega os 128KB da RAM do emulador e salva no disco
-    outFile.write((const char*)mcData, mcSize);
-    outFile.close();
-
-    std::cout << "[MEMORY CARD] Salvo com sucesso em: " << filepath << std::endl;
-    return true;
-}
+//void Core::SaveMemoryCard(const std::string &filepath)
+//{
+//    if (m_retro_get_memory_data && m_retro_get_memory_size)
+//    {
+//        size_t mcSize = m_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+//        void* mcData = m_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+//
+//        if (mcSize == 0 || mcData == nullptr)
+//        {
+//            std::cout << "PS1LOG:[WARNING] Core didn't activated Memory Card interface. Skipping save." << std::endl;
+//            return;
+//        }
+//
+//        std::ofstream outFile(filepath, std::ios::binary);
+//        if (!outFile.is_open())
+//        {
+//            std::cout << "[ERRO] Nao foi possivel gravar o Memory Card em: " << filepath << std::endl;
+//            return;
+//        }
+//
+//        outFile.write((const char*)mcData, mcSize);
+//        outFile.close();
+//
+//        std::cout << "[MEMORY CARD] Salvo com sucesso em: " << filepath << std::endl;
+//    }
+//    else
+//    {
+//		std::cout << "PS1LOG:[WARNING] Memory Card functions are disabled. Skipping save." << std::endl;
+//    }
+//}

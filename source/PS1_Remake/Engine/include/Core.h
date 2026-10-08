@@ -6,21 +6,21 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
-#include <cstdio>   
-#include <cstdarg>  
-#include <algorithm> 
+#include <cstdio>
+#include <cstdarg>
+#include <algorithm>
 #include <fstream>
 
-// --- Definições da API Libretro ---
+// --- Definiï¿½ï¿½es da API Libretro ---
 #define RETRO_API_VERSION 1
 
 #ifndef RETRO_CALLCONV
 #define RETRO_CALLCONV
 #endif
 
-// --- DEFINIÇÕES IMPORTANTES ---
+// --- DEFINIï¿½ï¿½ES IMPORTANTES ---
 #define RETRO_DEVICE_TYPE_SHIFT 24
-#define RETRO_DEVICE_NONE       0
+#define RETRO_DEVICE_NONE 0
 
 #define GL_FRAMEBUFFER 0x8D40
 #define GL_COLOR_ATTACHMENT0 0x8CE0
@@ -34,33 +34,33 @@
 #define GL_COLOR_BUFFER_BIT 0x00004000
 
 // O que o Core PEDE (Tipos de Dados de Input)
-#define RETRO_DEVICE_JOYPAD     1  // Botões Digitais
-#define RETRO_DEVICE_ANALOG     5  // Eixos Analógicos (Sticks)
+#define RETRO_DEVICE_JOYPAD 1 // Botï¿½es Digitais
+#define RETRO_DEVICE_ANALOG 5 // Eixos Analï¿½gicos (Sticks)
 
-// O que nós CONECTAMOS (IDs de Hardware do PS1)
-#define RETRO_DEVICE_PS_DIGITAL   1
-#define RETRO_DEVICE_PS_DUALSHOCK 517 
+// O que nï¿½s CONECTAMOS (IDs de Hardware do PS1)
+#define RETRO_DEVICE_PS_DIGITAL 1
+#define RETRO_DEVICE_PS_DUALSHOCK 517
 
-// --- DEFINIÇÕES DE VIBRAÇÃO (RUMBLE) ---
+// --- DEFINIï¿½ï¿½ES DE VIBRAï¿½ï¿½O (RUMBLE) ---
 #define RETRO_ENVIRONMENT_SET_RUMBLE_INTERFACE 23
 
-// IDs dos Botões
-#define RETRO_DEVICE_ID_JOYPAD_B        0 
-#define RETRO_DEVICE_ID_JOYPAD_Y        1 
-#define RETRO_DEVICE_ID_JOYPAD_SELECT   2
-#define RETRO_DEVICE_ID_JOYPAD_START    3
-#define RETRO_DEVICE_ID_JOYPAD_UP       4
-#define RETRO_DEVICE_ID_JOYPAD_DOWN     5
-#define RETRO_DEVICE_ID_JOYPAD_LEFT     6
-#define RETRO_DEVICE_ID_JOYPAD_RIGHT    7
-#define RETRO_DEVICE_ID_JOYPAD_A        8 
-#define RETRO_DEVICE_ID_JOYPAD_X        9 
-#define RETRO_DEVICE_ID_JOYPAD_L        10
-#define RETRO_DEVICE_ID_JOYPAD_R        11
-#define RETRO_DEVICE_ID_JOYPAD_L2       12
-#define RETRO_DEVICE_ID_JOYPAD_R2       13
-#define RETRO_DEVICE_ID_JOYPAD_L3       14
-#define RETRO_DEVICE_ID_JOYPAD_R3       15
+// IDs dos Botï¿½es
+#define RETRO_DEVICE_ID_JOYPAD_B 0
+#define RETRO_DEVICE_ID_JOYPAD_Y 1
+#define RETRO_DEVICE_ID_JOYPAD_SELECT 2
+#define RETRO_DEVICE_ID_JOYPAD_START 3
+#define RETRO_DEVICE_ID_JOYPAD_UP 4
+#define RETRO_DEVICE_ID_JOYPAD_DOWN 5
+#define RETRO_DEVICE_ID_JOYPAD_LEFT 6
+#define RETRO_DEVICE_ID_JOYPAD_RIGHT 7
+#define RETRO_DEVICE_ID_JOYPAD_A 8
+#define RETRO_DEVICE_ID_JOYPAD_X 9
+#define RETRO_DEVICE_ID_JOYPAD_L 10
+#define RETRO_DEVICE_ID_JOYPAD_R 11
+#define RETRO_DEVICE_ID_JOYPAD_L2 12
+#define RETRO_DEVICE_ID_JOYPAD_R2 13
+#define RETRO_DEVICE_ID_JOYPAD_L3 14
+#define RETRO_DEVICE_ID_JOYPAD_R3 15
 
 // Comandos de Ambiente
 #define RETRO_ENVIRONMENT_GET_SYSTEM_DIRECTORY 9
@@ -76,8 +76,9 @@
 // Memory Cards
 #define RETRO_MEMORY_SAVE_RAM 0
 
-// Níveis de Log
-enum retro_log_level {
+// Nï¿½veis de Log
+enum retro_log_level
+{
     RETRO_LOG_DEBUG = 0,
     RETRO_LOG_INFO,
     RETRO_LOG_WARN,
@@ -86,7 +87,8 @@ enum retro_log_level {
 };
 
 // Tipos de Contexto de Hardware
-enum retro_hw_context_type {
+enum retro_hw_context_type
+{
     RETRO_HW_CONTEXT_NONE = 0,
     RETRO_HW_CONTEXT_OPENGL = 1,
     RETRO_HW_CONTEXT_OPENGLES2 = 2,
@@ -94,53 +96,58 @@ enum retro_hw_context_type {
     RETRO_HW_CONTEXT_VULKAN = 6
 };
 
-// Efeitos de Rumble (Vibração)
-enum retro_rumble_effect {
-    RETRO_RUMBLE_STRONG = 0, // Motor pesado (Baixa frequência)
-    RETRO_RUMBLE_WEAK = 1    // Motor leve (Alta frequência)
+// Efeitos de Rumble (Vibraï¿½ï¿½o)
+enum retro_rumble_effect
+{
+    RETRO_RUMBLE_STRONG = 0, // Motor pesado (Baixa frequï¿½ncia)
+    RETRO_RUMBLE_WEAK = 1    // Motor leve (Alta frequï¿½ncia)
 };
 
 // --- INTERFACE DE LOG (Para o Core enviar mensagens de log) ---
-struct retro_log_callback {
-    void (*log)(enum retro_log_level level, const char* fmt, ...);
+struct retro_log_callback
+{
+    void (*log)(enum retro_log_level level, const char *fmt, ...);
 };
 
-// --- INTERFACE DE RUMBLE (VIBRAÇÃO) ---
-struct retro_rumble_interface {
+// --- INTERFACE DE RUMBLE (VIBRAï¿½ï¿½O) ---
+struct retro_rumble_interface
+{
     bool (*set_rumble_state)(unsigned port, enum retro_rumble_effect effect, uint16_t strength);
 };
 
 // --- [TYPEDEFS DA GPU OFICIAIS] ---
 typedef void (*retro_proc_address_t)(void);
 typedef void (*retro_hw_context_reset_t)(void);
-typedef uintptr_t(*retro_hw_get_current_framebuffer_t)(void);
-typedef retro_proc_address_t(*retro_hw_get_proc_address_t)(const char* sym);
+typedef uintptr_t (*retro_hw_get_current_framebuffer_t)(void);
+typedef retro_proc_address_t (*retro_hw_get_proc_address_t)(const char *sym);
 
-struct retro_game_info {
-    const char* path;
-    const void* data;
+struct retro_game_info
+{
+    const char *path;
+    const void *data;
     size_t size;
-    const char* meta;
+    const char *meta;
 };
 
-struct retro_disk_control_callback {
+struct retro_disk_control_callback
+{
     bool (*set_eject_state)(bool ejected);
     bool (*get_eject_state)(void);
     unsigned (*get_image_index)(void);
     bool (*set_image_index)(unsigned index);
     unsigned (*get_num_images)(void);
-    bool (*replace_image_index)(unsigned index, const struct retro_game_info* info);
+    bool (*replace_image_index)(unsigned index, const struct retro_game_info *info);
     bool (*add_image_index)(void);
 };
 
 extern retro_disk_control_callback g_diskControl;
 extern bool g_diskControlExtExists;
 
-struct retro_hw_render_callback {
+struct retro_hw_render_callback
+{
     enum retro_hw_context_type context_type;
     retro_hw_context_reset_t context_reset;
 
-    // Olha como o get_current e o get_proc_address subiram de posição!
     retro_hw_get_current_framebuffer_t get_current_framebuffer;
     retro_hw_get_proc_address_t get_proc_address;
 
@@ -151,87 +158,92 @@ struct retro_hw_render_callback {
     unsigned version_minor;
     bool cache_context;
 
-    // Olha o context_destroy aqui no final, onde ele deveria estar!
     retro_hw_context_reset_t context_destroy;
     retro_hw_context_reset_t context_destroy_custom;
     retro_hw_context_reset_t context_reset_custom;
 };
 
-struct retro_variable {
-    const char* key;
-    const char* value;
+struct retro_variable
+{
+    const char *key;
+    const char *value;
 };
 
-class Core {
+class Core
+{
 public:
     bool m_frame_drawn = false;
 
     Core();
     ~Core();
 
-    bool LoadCore(const std::string& dllPath);
-    bool LoadGame(const std::string& gamePath);
+    bool LoadCore(const std::string &dllPath);
+    bool LoadGame(const std::string &gamePath);
     void RunFrame();
     void Unload();
     void EnableHardwareRenderer();
-    void InitVideo(SDL_Renderer* renderer);
+    void InitVideo(SDL_Renderer *renderer);
 
     // --- FBO NO MONITOR ---
-    void PresentFBO(SDL_Window* window);
+    void PresentFBO(SDL_Window *window);
 
-    void SwapDisc(const std::string& newIsoPath);
-    static bool EnvironmentCallback(unsigned cmd, void* data);
-    static void VideoRefresh(const void* data, unsigned width, unsigned height, size_t pitch);
+    void SwapDisc(const std::string &newIsoPath);
+    static bool EnvironmentCallback(unsigned cmd, void *data);
+    static void VideoRefresh(const void *data, unsigned width, unsigned height, size_t pitch);
     static void InputPoll();
     static int16_t InputState(unsigned port, unsigned device, unsigned index, unsigned id);
     static bool SetRumbleState(unsigned port, enum retro_rumble_effect effect, uint16_t strength);
-    static size_t AudioSampleBatch(const int16_t* data, size_t frames);
+    static size_t AudioSampleBatch(const int16_t *data, size_t frames);
     static void OnContextReset();
     static void OnContextDestroy();
 
-    // --- FUNÇÕES ESTÁTICAS PARA A GPU ---
-    static Core* s_instance; // A ponte para acessar a classe!
+    // --- FUNï¿½ï¿½ES ESTï¿½TICAS PARA A GPU ---
+    static Core *s_instance; // A ponte para acessar a classe!
     static uintptr_t GetCurrentFramebuffer();
-    static retro_proc_address_t GetProcAddress(const char* sym);
+    static retro_proc_address_t GetProcAddress(const char *sym);
 
-    bool SaveState(const std::string& filepath);
-    bool LoadState(const std::string& filepath);
+    // --- SAVE STATE ---
+    bool SaveState(const std::string &filepath);
+    bool LoadState(const std::string &filepath);
 
     // --- MEMORY CARD ---
-    bool LoadMemoryCard(const std::string& filepath);
-    bool SaveMemoryCard(const std::string& filepath);
+    //void LoadMemoryCard(const std::string &filepath);
+    //void SaveMemoryCard(const std::string &filepath);
 
-	// --- ATIVAÇÃO/DESATIVAÇÃO RUMBLE (Vibração) ---
+    // --- ATIVAï¿½ï¿½O/DESATIVAï¿½ï¿½O RUMBLE (Vibraï¿½ï¿½o) ---
     void ToggleRumble();
 
+    // Seleciona o filtro de pï¿½s-processamento (0-5)
+    void CallConfigVideoSet(int posProcessValue, int internalResolutionValue);
+
 private:
-    void* m_coreHandle;
+    void *m_coreHandle;
     bool m_hw_render_enabled;
     struct retro_hw_render_callback m_hw_render_callback = {};
 
-    // --- DEFINIÇÕES DE TIPOS (A ordem importa!) ---
+    // --- DEFINIï¿½ï¿½ES DE TIPOS (A ordem importa!) ---
     typedef void (*retro_init_t)(void);
     typedef void (*retro_deinit_t)(void);
     typedef unsigned (*retro_api_version_t)(void);
-    typedef void (*retro_set_environment_t)(bool (*)(unsigned, void*));
-    typedef void (*retro_set_video_refresh_t)(void (*)(const void*, unsigned, unsigned, size_t));
-    typedef void (*retro_set_audio_sample_batch_t)(size_t(*)(const int16_t*, size_t));
+    typedef void (*retro_set_environment_t)(bool (*)(unsigned, void *));
+    typedef void (*retro_set_video_refresh_t)(void (*)(const void *, unsigned, unsigned, size_t));
+    typedef void (*retro_set_audio_sample_batch_t)(size_t (*)(const int16_t *, size_t));
     typedef void (*retro_set_input_poll_t)(void (*)(void));
-    typedef void (*retro_set_input_state_t)(int16_t(*)(unsigned, unsigned, unsigned, unsigned));
-    typedef bool (*retro_load_game_t)(struct retro_game_info* info);
+    typedef void (*retro_set_input_state_t)(int16_t (*)(unsigned, unsigned, unsigned, unsigned));
+    typedef bool (*retro_load_game_t)(struct retro_game_info *info);
     typedef void (*retro_run_t)(void);
 
     // Definindo o tipo AQUI, antes de usar:
     typedef void (*retro_set_controller_port_device_t)(unsigned port, unsigned device);
 
-    // --- TYPEDEFS DE MEMÓRIA ---
-    typedef void* (*retro_get_memory_data_t)(unsigned id);
-    typedef size_t(*retro_get_memory_size_t)(unsigned id);
+    // --- TYPEDEFS DE MEMï¿½RIA ---
+    typedef void *(*retro_get_memory_data_t)(unsigned id);
+    typedef size_t (*retro_get_memory_size_t)(unsigned id);
 
     retro_get_memory_data_t m_retro_get_memory_data = nullptr;
     retro_get_memory_size_t m_retro_get_memory_size = nullptr;
 
-    // Variáveis Membro
+    // Variï¿½veis Membro
     retro_init_t m_retro_init;
     retro_deinit_t m_retro_deinit;
     retro_load_game_t m_retro_load_game;
@@ -241,13 +253,13 @@ private:
     // Agora o compilador reconhece o tipo:
     retro_set_controller_port_device_t m_retro_set_controller_port_device;
 
-    // Assinatura das funções de DLL
-    typedef size_t(*retro_serialize_size_t)(void);
-    typedef bool   (*retro_serialize_t)(void* data, size_t size);
-    typedef bool   (*retro_unserialize_t)(const void* data, size_t size);
+    // Assinatura das funï¿½ï¿½es de DLL
+    typedef size_t (*retro_serialize_size_t)(void);
+    typedef bool (*retro_serialize_t)(void *data, size_t size);
+    typedef bool (*retro_unserialize_t)(const void *data, size_t size);
 
     // Os ponteiros que vamos carregar
     retro_serialize_size_t m_retro_serialize_size;
-    retro_serialize_t      m_retro_serialize;
-    retro_unserialize_t    m_retro_unserialize;
+    retro_serialize_t m_retro_serialize;
+    retro_unserialize_t m_retro_unserialize;
 };
